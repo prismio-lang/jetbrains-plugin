@@ -23,6 +23,12 @@ public final class SymbolTable {
   private final Map<String, List<FnSig>> functions = new HashMap<>();
   private final Map<String, List<FnSig>> ownMembers = new HashMap<>();
   private final Map<String, List<FnSig>> extensions = new HashMap<>();
+  /**
+   * Functions whose first parameter is {@code T?} for a type parameter {@code T} --
+   * std.option's {@code unwrapOr}, {@code expect}, {@code map}: methods of every
+   * optional, whatever it holds, so no module is their home.
+   */
+  private final List<FnSig> optionalExtensions = new ArrayList<>();
   private final Map<String, List<ModuleSummary.Global>> constants = new HashMap<>();
   private final Map<String, Set<String>> traitsOf = new HashMap<>();
   private final Map<String, TypeDecl> types = new HashMap<>();
@@ -60,6 +66,10 @@ public final class SymbolTable {
       FnSig.Param first = fn.params().isEmpty() ? null : fn.params().get(0);
       if (first != null && first.type() != null) {
         extensions.computeIfAbsent(first.type().memberKey(), k -> new ArrayList<>()).add(fn);
+        if (first.type().optional() && first.type().args().isEmpty()
+            && fn.allTypeParameters().contains(first.type().name())) {
+          optionalExtensions.add(fn);
+        }
       }
     }
     for (TypeDecl type : summary.types()) {
@@ -196,6 +206,24 @@ public final class SymbolTable {
             out.add(new Member(fn.name(), Member.Kind.METHOD, Member.Origin.EXTENSION,
                 fn.returnType() == null ? null : fn.returnType().substitute(bindings), fn, fn.module(),
                 fn.doc()));
+          }
+        }
+        // Any optional is the receiver of a function over `T?`: `home.unwrapOr("/")`.
+        if (receiver.optional()) {
+          for (FnSig fn : table.optionalExtensions) {
+            if (lowered.contains(fn.name())) {
+              continue;
+            }
+            Map<String, TypeRef> bindings = new HashMap<>();
+            TypeRef first = fn.params().get(0).type();
+            if (first == null || !TypeRef.unify(first, receiver, fn.allTypeParameters(), bindings)) {
+              continue;
+            }
+            if (seen.add(signatureKey(fn))) {
+              out.add(new Member(fn.name(), Member.Kind.METHOD, Member.Origin.EXTENSION,
+                  fn.returnType() == null ? null : fn.returnType().substitute(bindings), fn, fn.module(),
+                  fn.doc()));
+            }
           }
         }
       }

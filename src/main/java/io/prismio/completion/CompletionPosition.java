@@ -89,6 +89,9 @@ record CompletionPosition(
       if (code.get(lineStart).is("import")) {
         return importPosition(code, lineStart, prev, prefixStart, depth, text, offset);
       }
+      if (isFromImportLine(code, lineStart, prev)) {
+        return fromImportPosition(code, lineStart, prev, prefixStart, depth);
+      }
     }
 
     if (before.type() == PrismioTypes.DOT) {
@@ -198,6 +201,47 @@ record CompletionPosition(
       return simple(Kind.IMPORT_FROM, prefixStart, depth);
     }
     // After a complete path: `as`, or nothing.
+    return simple(Kind.NONE, prefixStart, depth);
+  }
+
+  /** A line that starts {@code from <directory>}, where nothing else can: the directory-first import. */
+  private static boolean isFromImportLine(List<Tok> code, int lineStart, int prev) {
+    if (!code.get(lineStart).is("from")) {
+      return false;
+    }
+    // `from <caret>`: nothing has followed it yet, and nothing else starts so.
+    if (lineStart == prev) {
+      return true;
+    }
+    if (lineStart + 1 >= code.size()) {
+      return false;
+    }
+    Tok next = code.get(lineStart + 1);
+    return !next.newlineBefore() && isWord(next);
+  }
+
+  /**
+   * {@code from <caret>}, and {@code from std import {io, <caret>}}: the directory
+   * after {@code from}, then the modules of it between the braces.
+   */
+  private static CompletionPosition fromImportPosition(List<Tok> code, int fromIndex, int prev,
+      int prefixStart, int depth) {
+    Tok before = code.get(prev);
+    if (before.is("from")) {
+      return new CompletionPosition(Kind.IMPORT, prefixStart, depth, null, null, true, false);
+    }
+    boolean inGroup = false;
+    for (int k = fromIndex + 1; k <= prev; k++) {
+      if (code.get(k).type() == PrismioTypes.LBRACE) {
+        inGroup = true;
+      } else if (code.get(k).type() == PrismioTypes.RBRACE) {
+        inGroup = false;
+      }
+    }
+    if (inGroup) {
+      return new CompletionPosition(Kind.IMPORT, prefixStart, depth, null,
+          dottedFrom(code, fromIndex + 1), false, false);
+    }
     return simple(Kind.NONE, prefixStart, depth);
   }
 

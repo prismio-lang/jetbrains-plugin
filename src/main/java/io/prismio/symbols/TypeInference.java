@@ -256,7 +256,7 @@ public final class TypeInference {
           return -1;
         }
       } else if (tok.is(">") || tok.is(">>")) {
-        // `Option<Int>.` — a type with arguments, as a static receiver.
+        // `Box<Int>.` — a type with arguments, as a static receiver.
         int lt = matchingAngleBackward(j);
         if (lt > 0 && t.get(lt - 1).isName()) {
           j = lt - 1;

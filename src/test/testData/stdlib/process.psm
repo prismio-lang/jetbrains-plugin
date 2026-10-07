@@ -9,8 +9,8 @@ let process: ProcessQuery
 
 impl ProcessQuery {
     // The variable's value, or `None` when it is not set.
-    public fn env(self, name: String) -> Option<String> {
-        return Option<String>.None
+    public fn env(self, name: String) -> String? {
+        return none
     }
 }
 

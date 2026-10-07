@@ -86,7 +86,7 @@ public final class CompilerIntrinsics {
     String chanSetup = "let r = Channel<ProbeMessage>(4)";
     TypeRef chanT = TypeRef.parse("Channel<T>");
     out.add(method(chanT, "send", "value: T", "Bool", chanSetup, "let x = r.send(ProbeMessage { value: 1 })"));
-    out.add(method(chanT, "receive", "", "Option<T>", chanSetup, "let x = r.receive()"));
+    out.add(method(chanT, "receive", "", "T?", chanSetup, "let x = r.receive()"));
     out.add(method(chanT, "share", "", "Channel<T>", chanSetup, "let x = r.share()"));
     out.add(method(chanT, "close", "", null, chanSetup, "r.close()"));
     out.add(method(chanT, "free", "", null, chanSetup, "r.free()"));

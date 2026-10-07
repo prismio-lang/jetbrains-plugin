@@ -43,7 +43,7 @@ public interface PrismioTypes {
   /** {@code Int}, {@code String}, {@code U64} — the compiler's own type table. */
   IElementType BUILTIN_TYPE = new PrismioTokenType("BUILTIN_TYPE");
 
-  /** {@code List}, {@code Option}, {@code Box} — shipped in {@code std}, not built in. */
+  /** {@code List}, {@code Result}, {@code Box} — shipped in {@code std}, not built in. */
   IElementType STDLIB_TYPE = new PrismioTokenType("STDLIB_TYPE");
 
   // Comments.

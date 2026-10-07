@@ -30,7 +30,7 @@ impl String {
     public fn contains(self, needle: String) -> Bool { return strContains(self, needle) }
     public fn contains(self, needle: Char) -> Bool { return strContainsChar(self, needle) }
     public fn trim(self) -> String { return strTrim(self) }
-    public fn find(self, needle: String) -> Option<Int> { return strFind(self, needle) }
+    public fn find(self, needle: String) -> Int? { return strFind(self, needle) }
     fn hidden(self) -> Int { return 0 }
 }
 

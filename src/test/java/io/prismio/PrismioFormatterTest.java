@@ -159,6 +159,11 @@ public class PrismioFormatterTest extends BasePlatformTestCase {
     assertEquals("let maybe: Int? = none", reformat("let maybe: Int? = none"));
   }
 
+  public void testNoneCoalescingGetsSpaces() {
+    assertEquals("let n = a ?? 0", reformat("let n = a??0"));
+    assertEquals("let n = a ?? b ?? 0", reformat("let n = a ?? b??0"));
+  }
+
   public void testCallsAndFieldAccessStayTight() {
     assertEquals("let n = point.x", reformat("let n = point.x"));
     assertEquals("println(value)", reformat("println(value)"));

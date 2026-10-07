@@ -24,7 +24,7 @@ public record TypeDecl(
 
   public enum Kind { STRUCT, ENUM, TRAIT }
 
-  /** The type this declaration introduces, with its own parameters as arguments: {@code Option<T>}. */
+  /** The type this declaration introduces, with its own parameters as arguments: {@code Box<T>}. */
   public @NotNull TypeRef selfType() {
     return new TypeRef(name, typeParameters.stream().map(TypeRef::simple).toList(), false);
   }

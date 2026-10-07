@@ -106,7 +106,7 @@ public class PrismioLexerTest extends TestCase {
     assertEquals(List.of(PrismioTypes.BUILTIN_TYPE), types("Usize"));
     assertEquals(List.of(PrismioTypes.BUILTIN_TYPE), types("String"));
     assertEquals(List.of(PrismioTypes.STDLIB_TYPE), types("List"));
-    assertEquals(List.of(PrismioTypes.STDLIB_TYPE), types("Option"));
+    assertEquals(List.of(PrismioTypes.STDLIB_TYPE), types("Result"));
     // The compiler's table defines I8, I16 and I64 but never a 32-bit signed
     // type, so this must not be highlighted as one.
     assertEquals(List.of(PrismioTypes.IDENTIFIER), types("I32"));
@@ -245,6 +245,16 @@ public class PrismioLexerTest extends TestCase {
     assertEquals(List.of(PrismioTypes.ASSIGNMENT_OP), types("+="));
     assertEquals(List.of(PrismioTypes.ASSIGNMENT_OP), types("="));
     assertEquals(List.of(PrismioTypes.NEGATION), types("!"));
+  }
+
+  public void testNoneCoalescingIsOneOperator() {
+    // `??` is one token, as the compiler scans it, and a lone `?` stays the
+    // optional suffix: `Int? ?? 0` is a type suffix and then the operator.
+    assertEquals(List.of(PrismioTypes.IDENTIFIER, PrismioTypes.ARITHMETIC_OP, PrismioTypes.INTEGER),
+        types("a ?? 0"));
+    assertEquals(List.of("a", "??", "0"), texts("a ?? 0"));
+    assertEquals(List.of("a", "??", "b", "??", "0"), texts("a??b??0"));
+    assertEquals(List.of("Int", "?", "=", "none"), texts("Int?=none"));
   }
 
   public void testTildeAndQuestionMark() {

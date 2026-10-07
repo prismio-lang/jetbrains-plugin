@@ -64,6 +64,7 @@ public final class SignatureParser {
       }
       switch (t.text()) {
         case "import" -> parseImport();
+        case "from" -> parseFromImport();
         case "fn" -> parseFunction(declStart, visibility, null, List.of(), null, false);
         case "extern" -> parseExtern(declStart, visibility);
         case "struct" -> parseStruct(declStart);
@@ -109,30 +110,71 @@ public final class SignatureParser {
     }
   }
 
+  /**
+   * {@code from std import {io, string as s}} and {@code from std import *}: the
+   * grouped and wildcard imports with the directory first. The same imports the
+   * other order makes, so everything downstream reads one list.
+   */
+  private void parseFromImport() {
+    Tok first = toks.get(i);
+    int start = first.start();
+    Tok next = peek(1);
+    // A `from` that is not followed by a directory is an identifier of some
+    // other statement, which `parseTopLevel` skips a token at a time.
+    if (next == null || !(next.isName() || next.type() == PrismioTypes.KEYWORD)) {
+      i++;
+      return;
+    }
+    i++;
+    String dir = parseDirectory();
+    if (dir == null || !at("import")) {
+      return;
+    }
+    i++;
+    if (atType(PrismioTypes.LBRACE)) {
+      List<String[]> entries = parseGroupEntries();
+      int end = i > 0 ? toks.get(i - 1).end() : text.length();
+      for (String[] entry : entries) {
+        imports.add(new ModuleSummary.Import(dir + "." + entry[0], false, entry[1], start, end, true));
+      }
+      return;
+    }
+    if (atType(PrismioTypes.ARITHMETIC_OP) && at("*")) {
+      imports.add(new ModuleSummary.Import(dir, true, null, start, toks.get(i).end(), false));
+      i++;
+    }
+  }
+
+  /** The braces of an import group and the names in them, with each one's alias. */
+  private @NotNull List<String[]> parseGroupEntries() {
+    i++;
+    List<String[]> entries = new ArrayList<>();
+    while (i < toks.size() && !atType(PrismioTypes.RBRACE)) {
+      Tok entry = toks.get(i);
+      if (entry.isName() || entry.type() == PrismioTypes.KEYWORD) {
+        String alias = null;
+        i++;
+        if (at("as") && peek(1) != null) {
+          alias = peek(1).text();
+          i += 2;
+        }
+        entries.add(new String[] {entry.text(), alias});
+      } else {
+        i++;
+      }
+    }
+    i++;
+    return entries;
+  }
+
   private void parseImport() {
     Tok first = toks.get(i);
     int start = first.start();
     i++;
     if (atType(PrismioTypes.LBRACE)) {
       // import {io, string as s} from std
-      i++;
-      List<String[]> entries = new ArrayList<>();
-      while (i < toks.size() && !atType(PrismioTypes.RBRACE)) {
-        Tok entry = toks.get(i);
-        if (entry.isName() || entry.type() == PrismioTypes.KEYWORD) {
-          String alias = null;
-          i++;
-          if (at("as") && peek(1) != null) {
-            alias = peek(1).text();
-            i += 2;
-          }
-          entries.add(new String[] {entry.text(), alias});
-        } else {
-          i++;
-        }
-      }
-      int end = i < toks.size() ? toks.get(i).end() : text.length();
-      i++;
+      List<String[]> entries = parseGroupEntries();
+      int end = toks.get(i - 1).end();
       String dir = parseFrom();
       if (dir != null) {
         end = toks.get(i - 1).end();
@@ -193,6 +235,11 @@ public final class SignatureParser {
       return null;
     }
     i++;
+    return parseDirectory();
+  }
+
+  /** The dotted directory after {@code from}: {@code std}, or {@code a.b}. */
+  private @Nullable String parseDirectory() {
     StringBuilder dir = new StringBuilder();
     while (i < toks.size()) {
       Tok segment = toks.get(i);
@@ -344,8 +391,13 @@ public final class SignatureParser {
         expectName = true;
         i++;
         continue;
-      } else if (t.type() == PrismioTypes.LBRACE || t.type() == PrismioTypes.LPAREN) {
+      } else if (t.type() == PrismioTypes.LBRACE || startsDeclaration(t)) {
         break;
+      } else if (t.type() == PrismioTypes.LPAREN || t.type() == PrismioTypes.RPAREN) {
+        // A closure bound, `F: Fn(T) -> U`: its parentheses are inside the list, and
+        // the `->` is an arrow, not a `>` that closes it.
+        i++;
+        continue;
       } else if (expectName && depth == 1 && t.isName()) {
         names.add(t.text());
       }

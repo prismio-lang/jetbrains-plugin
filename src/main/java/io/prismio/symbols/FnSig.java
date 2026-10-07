@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @param module the module that declares it: {@code std.string}, or a project module's dotted name
  * @param owner the type an {@code impl} block attaches it to, or null for a free function
- * @param ownerParameters the {@code impl}'s type parameters: {@code T} in {@code impl<T> Option<T>}
+ * @param ownerParameters the {@code impl}'s type parameters: {@code T} in {@code impl<T> Result<T, E>}
  * @param trait the trait an {@code impl Trait for Type} block implements, or null
  * @param hasSelf whether it takes {@code self}: an instance member rather than {@code Type.name()}
  * @param property declared with {@code prop}, read as {@code x.name} with no parentheses

@@ -1,18 +1,27 @@
-// Option<T> and Result<T, E> -- signalling absence and failure without a
-// sentinel.
+// What `T?` and Result<T, E> need beyond the language -- signalling absence and
+// failure without a sentinel.
 
-enum Option<T> {
-    None,
-    Some(T)
+// The value, or `fallback` when there is none.
+public fn unwrapOr<T>(o: T?, fallback: T) -> T {
+    return fallback
 }
 
-impl<T> Option<T> {
-    public prop isSome(self) -> Bool {
-        return true
-    }
+// The value, or a panic with `message` when there is none.
+public fn expect<T>(o: T?, message: String) -> T {
+    return fallback
+}
 
-    // The value, or `fallback` when there is none.
-    public fn unwrapOr(self, fallback: T) -> T {
-        return fallback
+public fn map<T, U, F: Fn(T) -> U>(o: T?, f: F) -> U? {
+    return none
+}
+
+enum Result<T, E> {
+    Err(E),
+    Ok(T)
+}
+
+impl<T, E> Result<T, E> {
+    public prop isOk(self) -> Bool {
+        return true
     }
 }

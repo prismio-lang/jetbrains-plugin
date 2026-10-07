@@ -12,6 +12,6 @@ public fn contains<T: Eq>(items: Vec<T>, needle: T) -> Bool {
     return false
 }
 
-public fn get<T: Copy>(items: Vec<T>, index: Int) -> Option<T> {
-    return Option<T>.None
+public fn get<T: Copy>(items: Vec<T>, index: Int) -> T? {
+    return none
 }

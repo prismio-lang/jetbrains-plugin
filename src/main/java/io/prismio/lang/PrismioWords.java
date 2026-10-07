@@ -76,7 +76,7 @@ public final class PrismioWords {
 
   /** Generic types the standard library ships; not known to the compiler itself. */
   public static final Set<String> STDLIB_TYPES = Set.of(
-      "List", "Map", "Option", "Result", "Box", "Task", "Slice", "DataView", "Chan");
+      "List", "Map", "Result", "Box", "Task", "Slice", "DataView", "Chan");
 
   /** Modules resolvable as {@code import std.<leaf>}; the files in {@code std/}. */
   public static final Set<String> STD_MODULES = Set.of(

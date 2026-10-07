@@ -125,6 +125,12 @@ public final class PrismioLexer extends LexerBase {
       tokenEnd = peekIs(2, '<') ? tokenStart + 3 : tokenStart + 2;
       return PrismioTypes.RANGE;
     }
+    // `??`, none-coalescing: one token, as the compiler scans it, so the formatter
+    // spaces it as the binary operator it is and a lone `?` stays the optional suffix.
+    if (c == '?' && peekIs(1, '?')) {
+      tokenEnd = tokenStart + 2;
+      return PrismioTypes.ARITHMETIC_OP;
+    }
     IElementType separator = separator(c);
     if (separator != null) {
       tokenEnd = tokenStart + 1;

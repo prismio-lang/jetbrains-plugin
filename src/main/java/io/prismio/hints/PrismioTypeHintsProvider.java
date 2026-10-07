@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * {@code let found = s.find("x")} shows {@code : Option<Int>} after the name —
+ * {@code let found = s.find("x")} shows {@code : Int?} after the name —
  * the type a binding has without writing one, as the Rust and Kotlin plugins
  * show it.
  *

@@ -137,14 +137,28 @@ public class PrismioSmartCompletionTest extends BasePlatformTestCase {
             let found = s.find("b")
             found.<caret>
         }
-        """), "isSome", "unwrapOr");
-    // `Option<Int>.unwrapOr` returns `T`, which is `Int` here.
+        """), "unwrapOr", "expect");
+    // `unwrapOr` on an `Int?` returns `T`, which is `Int` here.
     assertContainsElements(completeAt("""
         fn main() {
             let s = "abc"
             s.find("b").unwrapOr(0).<caret>
         }
         """), "countOnes");
+  }
+
+  /** A reference's `T?` has no intrinsics: `unwrapOr`, `expect` and `map` are std.option's functions over `T?`. */
+  public void testAReferenceOptionalOffersTheOptionFunctions() {
+    List<String> members = completeAt("""
+        import std.option
+        import std.process
+        fn main() {
+            let home = process.env("HOME")
+            home.<caret>
+        }
+        """);
+    assertContainsElements(members, "unwrapOr", "expect", "map");
+    assertDoesntContain(members, "isSome", "isNone");
   }
 
   public void testStaticMembersOfAType() {
@@ -163,9 +177,9 @@ public class PrismioSmartCompletionTest extends BasePlatformTestCase {
         """), "new");
     assertContainsElements(completeAt("""
         fn main() {
-            let o = Option<Int>.<caret>
+            let o = Result<Int, String>.<caret>
         }
-        """), "None", "Some");
+        """), "Ok", "Err");
   }
 
   public void testVecOffersLoweredMembersAndLibraryFunctions() {
@@ -410,6 +424,16 @@ public class PrismioSmartCompletionTest extends BasePlatformTestCase {
     assertContainsElements(completeAt("import std.string.<caret>\n"), "join", "StringBuilder");
   }
 
+  /** `from std import {...}` is the same group with the directory first. */
+  public void testFromImportGroupListsTheModulesOfItsDirectory() {
+    assertContainsElements(completeAt("from std import {<caret>}\n"), "io", "string");
+    myFixture.addFileToProject("project/ums_cli.psm", "fn run() {}\n");
+    myFixture.addFileToProject("project/host.psm", "fn run() {}\n");
+    List<String> names = completeAt("from project import {ums_cli, <caret>}\n");
+    assertContainsElements(names, "ums_cli", "host");
+    assertContainsElements(completeAt("from <caret>\n"), "std");
+  }
+
   public void testImportGroupListsTheModulesOfAProjectDirectory() {
     myFixture.addFileToProject("project/ums_cli.psm", "fn run() {}\n");
     myFixture.addFileToProject("project/host.psm", "fn run() {}\n");
@@ -483,7 +507,7 @@ public class PrismioSmartCompletionTest extends BasePlatformTestCase {
             let v: <caret>
         }
         """);
-    assertContainsElements(annotation, "Int", "String", "Vec", "Option", "StringBuilder");
+    assertContainsElements(annotation, "Int", "String", "Vec", "Result", "StringBuilder");
     assertDoesntContain(annotation, "println", "return");
   }
 
@@ -560,7 +584,7 @@ public class PrismioSmartCompletionTest extends BasePlatformTestCase {
       }
       byName.put(text.substring(start, end), type.toString());
     });
-    assertEquals(java.util.Map.of("found", "Option<Int>", "b", "StringBuilder", "n", "Int"), byName);
+    assertEquals(java.util.Map.of("found", "Int?", "b", "StringBuilder", "n", "Int"), byName);
   }
 
   /** The three reports this completion work started from, in the file they were made in. */
