@@ -62,6 +62,28 @@ public class PrismioSmartCompletionTest extends BasePlatformTestCase {
     fail("no lookup element " + lookupString + " in " + myFixture.getLookupElementStrings());
   }
 
+  // ------------------------------------------------------------ freestanding
+
+  /**
+   * The builtins a kernel uses are in no module, so the library index cannot offer
+   * them; they come from a table written out from {@code src/common/mem_builtins.psm}.
+   */
+  public void testFreestandingBuiltinsAreOffered() {
+    List<String> names = completeAt("""
+        fn main() -> Int {
+            __builtin_mem_v<caret>
+            return 0
+        }
+        """);
+    assertContainsElements(names, "__builtin_mem_vstore_u32", "__builtin_mem_vload_u8");
+    assertDoesntContain(names, "__builtin_mem_aadd_u32");
+  }
+
+  public void testFunctionModifiersAreOfferedAtTopLevel() {
+    List<String> words = completeAt("<caret>\n");
+    assertContainsElements(words, "export", "naked", "section", "packed");
+  }
+
   // ------------------------------------------------------------ members
 
   public void testStringLiteralLocalOffersStringMembers() {

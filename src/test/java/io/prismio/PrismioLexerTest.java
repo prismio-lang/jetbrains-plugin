@@ -97,7 +97,9 @@ public class PrismioLexerTest extends TestCase {
 
   public void testContextualKeywordsAreTheirOwnToken() {
     for (String word : List.of("public", "private", "internal", "dyn", "spawn", "pin", "unique",
-        "produce", "borrow", "alias", "Self", "type", "step")) {
+        "produce", "borrow", "alias", "Self", "type", "step",
+        // Before `fn` and `struct` in a program with no operating system under it.
+        "export", "naked", "section", "align", "repr", "packed")) {
       assertEquals(word + " is contextual", List.of(PrismioTypes.CONTEXTUAL_KEYWORD), types(word));
     }
   }

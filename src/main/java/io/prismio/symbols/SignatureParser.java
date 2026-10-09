@@ -55,9 +55,7 @@ public final class SignatureParser {
     while (i < toks.size()) {
       int declStart = i;
       int visibility = visibilityMarker();
-      if (at("cold")) {
-        i++;
-      }
+      skipDeclarationModifiers();
       Tok t = peek(0);
       if (t == null) {
         return;
@@ -83,6 +81,52 @@ public final class SignatureParser {
     }
   }
 
+  /**
+   * The words between a visibility marker and {@code fn} or {@code struct} that say
+   * something about the symbol or the layout (src/parse/decl.psm): {@code cold},
+   * {@code export}, {@code naked}, {@code section("...")} and {@code align(n)} before
+   * {@code fn}; {@code repr(C)} and {@code packed} before {@code struct}. Each counts
+   * only when a declaration word or another modifier follows it, so a variable named
+   * {@code export} is still a variable.
+   */
+  private void skipDeclarationModifiers() {
+    while (isModifierAt(i)) {
+      Tok next = peek(1);
+      if (next != null && next.type() == PrismioTypes.LPAREN) {
+        i = matching(i + 1) + 1;
+      } else {
+        i++;
+      }
+    }
+  }
+
+  private boolean isModifierAt(int at) {
+    if (at >= toks.size()) {
+      return false;
+    }
+    Tok t = toks.get(at);
+    int after = at + 1;
+    switch (t.text()) {
+      case "cold", "export", "naked", "packed" -> {
+      }
+      case "section", "align", "repr" -> {
+        if (after >= toks.size() || toks.get(after).type() != PrismioTypes.LPAREN) {
+          return false;
+        }
+        after = matching(after) + 1;
+      }
+      default -> {
+        return false;
+      }
+    }
+    if (after >= toks.size()) {
+      return false;
+    }
+    Tok follower = toks.get(after);
+    return follower.text().equals("fn") || follower.text().equals("struct")
+        || follower.text().equals("prop") || isModifierAt(after);
+  }
+
   /** {@code public}, {@code private} or {@code internal} before a declaration word, or -1. */
   private int visibilityMarker() {
     Tok t = peek(0);
@@ -100,7 +144,8 @@ public final class SignatureParser {
       return -1;
     }
     switch (next.text()) {
-      case "fn", "extern", "struct", "enum", "let", "prop", "cold", "trait" -> {
+      case "fn", "extern", "struct", "enum", "let", "prop", "cold", "trait", "export", "naked",
+          "section", "align", "repr", "packed" -> {
         i++;
         return level;
       }
@@ -368,7 +413,7 @@ public final class SignatureParser {
     }
     return switch (t.text()) {
       case "fn", "extern", "struct", "enum", "trait", "impl", "let", "import", "public", "private",
-          "internal", "prop", "cold" -> true;
+          "internal", "prop", "cold", "export", "naked", "section", "align", "repr", "packed" -> true;
       default -> false;
     };
   }

@@ -52,6 +52,10 @@ public final class PrismioWords {
    * {@code *}: {@code import {io, string} from std}; {@code src/parse/decl.psm} for
    * {@code prop}, which declares a property where {@code fn} declares a method, and
    * {@code cold}, which marks a function that rarely runs ({@code cold fn fail()}).
+   * Also in {@code src/parse/decl.psm}, for programs with no operating system under them
+   * (docs/FREESTANDING_PLAN.md): {@code export}, {@code naked}, {@code section("...")}
+   * and {@code align(n)} before {@code fn}, and {@code repr(C)} and {@code packed}
+   * before {@code struct}.
    */
   public static final Set<String> CONTEXTUAL_KEYWORDS = Set.of(
       "public", "private", "internal",
@@ -59,7 +63,8 @@ public final class PrismioWords {
       "pin", "unique",
       "produce", "borrow", "alias", "free",
       "repeat", "from", "step",
-      "prop", "cold");
+      "prop", "cold",
+      "export", "naked", "section", "align", "repr", "packed");
 
   /**
    * Built-in types — {@code typeFromSemKey} in {@code src/ast/types.psm}.

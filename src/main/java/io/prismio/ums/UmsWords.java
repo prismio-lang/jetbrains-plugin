@@ -53,6 +53,11 @@ public final class UmsWords {
       "entry", "The source file this target is built from.",
       "runtime", "`\"installed\"` (the default) or `\"none\"`, when the native sources provide the runtime.",
       "exportDynamic", "`true` makes the executable's symbols visible to code it loads while running.",
+      "freestanding", "`true` builds a program with no operating system under it: no runtime, no C library, no startup files.",
+      "triple", "The machine to build for, an LLVM target triple such as `aarch64-unknown-none-elf`.",
+      "features", "An LLVM feature list for code generation, such as `-neon,-fp-armv8`.",
+      "codeModel", "`\"small\"`, `\"kernel\"`, `\"medium\"` or `\"large\"`.",
+      "noRedZone", "`true` marks every function `noredzone`: an interrupt handler uses the stack it interrupts.",
       "native", "C sources this target compiles and links, and the flags they use.",
       "link", "Ordered native linker inputs for this target.");
 
@@ -80,7 +85,9 @@ public final class UmsWords {
       "search", "A project-root-relative native search path.",
       "file", "An exact project-root-relative object or library.",
       "framework", "A Mach-O framework. Ignored on other targets.",
-      "responseFile", "Linker arguments from a file, such as another tool's output.");
+      "responseFile", "Linker arguments from a file, such as another tool's output.",
+      "script", "A linker script, passed as `-T <path>`. The path is project-root-relative.",
+      "arg", "One linker argument, as written.");
 
   /** Declarations inside `dependencies { }`. */
   public static final Map<String, String> DEPENDENCY_SCOPES = ordered(

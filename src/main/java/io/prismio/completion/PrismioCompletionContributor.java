@@ -99,12 +99,14 @@ public final class PrismioCompletionContributor extends CompletionContributor {
         addLibrary(project, file, result, true);
         Keywords.statement(result, position.afterBlock());
         Keywords.literals(result);
+        Keywords.freestanding(result);
       }
       case EXPRESSION -> {
         addNames(parameters.getPosition(), file, result);
         addLibrary(project, file, result, true);
         Keywords.expression(result);
         Keywords.literals(result);
+        Keywords.freestanding(result);
       }
     }
   }

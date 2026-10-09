@@ -34,7 +34,7 @@ public final class UmsCompletionContributor extends CompletionContributor {
   /** Names that take a parenthesised argument before their body, if any. */
   private static final List<String> TAKES_ARGUMENTS = List.of(
       "executable", "library", "test", "command",
-      "search", "file", "framework", "responseFile",
+      "search", "file", "framework", "responseFile", "script", "arg",
       "source", "include", "define", "flag",
       "implementation", "api", "testImplementation",
       "build", "run", "shell");

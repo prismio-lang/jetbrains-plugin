@@ -60,9 +60,9 @@
     "semantic_hash": ""
   },
   "src/main/java/io/prismio/completion/PrismioCompletionContributor.java": {
-    "mtime": 1790786689.0599394,
-    "seen": 1790918683.1654432,
-    "ast_hash": "9f7037e8ad08dc9a6fb9afc944612ce1",
+    "mtime": 1791432713.6270468,
+    "seen": 1791434989.334532,
+    "ast_hash": "fa53ad1cd1c392c79bbd18cd29d40b59",
     "semantic_hash": ""
   },
   "src/main/java/io/prismio/debugger/PrismioLineBreakpointType.java": {
@@ -186,10 +186,10 @@
     "semantic_hash": ""
   },
   "src/main/java/io/prismio/highlighter/PrismioSyntaxHighlighter.java": {
-    "mtime": 1790267537.8302917,
-    "seen": 1790918683.165461,
-    "ast_hash": "f157b530fa1ce71133c70b9644a381a7",
-    "semantic_hash": "f157b530fa1ce71133c70b9644a381a7"
+    "mtime": 1791373335.1297526,
+    "seen": 1791434989.334548,
+    "ast_hash": "39d12e68a8af8381321408bae4bb07ad",
+    "semantic_hash": ""
   },
   "src/main/java/io/prismio/highlighter/PrismioSyntaxHighlighterFactory.java": {
     "mtime": 1786483263.7679234,
@@ -204,16 +204,16 @@
     "semantic_hash": "6690f04e0aac6e58ac43294f4d49816b"
   },
   "src/main/java/io/prismio/lang/PrismioWords.java": {
-    "mtime": 1790617082.9401875,
-    "seen": 1790918683.165465,
-    "ast_hash": "681eb7b0bf15f28b2a76b49065d7664a",
-    "semantic_hash": "681eb7b0bf15f28b2a76b49065d7664a"
+    "mtime": 1791432713.6262476,
+    "seen": 1791434989.334552,
+    "ast_hash": "1faa49109969c92dc7a8cc9dc34e592a",
+    "semantic_hash": ""
   },
   "src/main/java/io/prismio/lexer/PrismioLexer.java": {
-    "mtime": 1790500448.3913844,
-    "seen": 1790918683.165466,
-    "ast_hash": "1b4ad89c0642a77a82d26e731b223d11",
-    "semantic_hash": "1b4ad89c0642a77a82d26e731b223d11"
+    "mtime": 1791373300.2404976,
+    "seen": 1791434989.334553,
+    "ast_hash": "4d5c8056050f0e60b5f324337d7d1fe0",
+    "semantic_hash": ""
   },
   "src/main/java/io/prismio/navigation/Declaration.java": {
     "mtime": 1786483263.7555323,
@@ -342,10 +342,10 @@
     "semantic_hash": "834be1eb0b14b20cc0f5eb17a82af930"
   },
   "src/main/java/io/prismio/psi/PrismioTypes.java": {
-    "mtime": 1790267537.829495,
-    "seen": 1790918683.1654809,
-    "ast_hash": "a2f5b562db33a068556d26e28244005d",
-    "semantic_hash": "a2f5b562db33a068556d26e28244005d"
+    "mtime": 1791373335.130054,
+    "seen": 1791434989.3345659,
+    "ast_hash": "1e6dae1a26d35e399c75c28564f499a8",
+    "semantic_hash": ""
   },
   "src/main/java/io/prismio/settings/PrismioCodeStyleSettings.java": {
     "mtime": 1786483263.7480507,
@@ -438,10 +438,10 @@
     "semantic_hash": "eda5b921f3bf6829fda76edc5f7b2c4f"
   },
   "src/main/java/io/prismio/ums/UmsCompletionContributor.java": {
-    "mtime": 1790596720.5736563,
-    "seen": 1790918683.165499,
-    "ast_hash": "cfd4f960b9fb15eaa8cd9ee8bc5bb4ce",
-    "semantic_hash": "cfd4f960b9fb15eaa8cd9ee8bc5bb4ce"
+    "mtime": 1791432816.2141342,
+    "seen": 1791434989.334582,
+    "ast_hash": "eefb2f49fd316058b92593920fc55a93",
+    "semantic_hash": ""
   },
   "src/main/java/io/prismio/ums/UmsContext.java": {
     "mtime": 1790756231.8480854,
@@ -534,16 +534,16 @@
     "semantic_hash": "9e993c7801826be73d179108a8d3fba7"
   },
   "src/main/java/io/prismio/ums/UmsValueChecks.java": {
-    "mtime": 1790764961.2419913,
-    "seen": 1790918683.16551,
-    "ast_hash": "e88bc6312ecdf4c998190102711c0c5f",
+    "mtime": 1791432816.2143934,
+    "seen": 1791434989.334592,
+    "ast_hash": "7eff68726bae37507a7cdd394d3f3795",
     "semantic_hash": ""
   },
   "src/main/java/io/prismio/ums/UmsWords.java": {
-    "mtime": 1790757747.3843381,
-    "seen": 1790918683.165511,
-    "ast_hash": "8adf0d167a565024b470d0e8d98e5c8a",
-    "semantic_hash": "8adf0d167a565024b470d0e8d98e5c8a"
+    "mtime": 1791432816.2138605,
+    "seen": 1791434989.334592,
+    "ast_hash": "8f05048dec0953aec84a67973fedfd4b",
+    "semantic_hash": ""
   },
   "src/test/java/io/prismio/PrismioAdvancedFeaturesTest.java": {
     "mtime": 1790921725.2719204,
@@ -558,9 +558,9 @@
     "semantic_hash": ""
   },
   "src/test/java/io/prismio/PrismioFormatterTest.java": {
-    "mtime": 1790788167.597348,
-    "seen": 1790918683.165513,
-    "ast_hash": "6cd75d02e852c6eae8619881c686287d",
+    "mtime": 1791373362.7878323,
+    "seen": 1791434989.3345978,
+    "ast_hash": "9f2746f7ebff3466282ec5afe9f1744a",
     "semantic_hash": ""
   },
   "src/test/java/io/prismio/PrismioGotoDeclarationTest.java": {
@@ -576,10 +576,10 @@
     "semantic_hash": "fe3c18c27f1ae4e523da9e31db891c2e"
   },
   "src/test/java/io/prismio/PrismioLexerTest.java": {
-    "mtime": 1790500510.6538365,
-    "seen": 1790918683.165515,
-    "ast_hash": "66d750061e7f38bd11b06621be093d2b",
-    "semantic_hash": "66d750061e7f38bd11b06621be093d2b"
+    "mtime": 1791432740.3188019,
+    "seen": 1791434989.334599,
+    "ast_hash": "3407ad5169bfff299931e18e44e1cb47",
+    "semantic_hash": ""
   },
   "src/test/java/io/prismio/PrismioParsingTest.java": {
     "mtime": 1788427802.2123444,
@@ -612,9 +612,9 @@
     "semantic_hash": "1fb6254c7a9d43e57861858321be5cb3"
   },
   "src/test/java/io/prismio/UmsValueChecksTest.java": {
-    "mtime": 1790764961.2422433,
-    "seen": 1790918683.165519,
-    "ast_hash": "12e5877833a3684e832dbaa1142b699e",
+    "mtime": 1791432816.214585,
+    "seen": 1791434989.334603,
+    "ast_hash": "0d1edc17d4dcdca721522dd848686544",
     "semantic_hash": ""
   },
   "src/test/java/io/prismio/annotator/PrismioCheckCorpusTest.java": {
@@ -672,10 +672,10 @@
     "semantic_hash": "b1bea8e9d6440562333c7ca555c6871e"
   },
   "src/main/java/io/prismio/symbols/FnSig.java": {
-    "mtime": 1790758499.48874,
-    "seen": 1790918683.165486,
-    "ast_hash": "231b9732d72c2012cc29003669bb500f",
-    "semantic_hash": "231b9732d72c2012cc29003669bb500f"
+    "mtime": 1791373335.1295094,
+    "seen": 1791434989.3345711,
+    "ast_hash": "1aaf1faad0f934518773952bd3bc5038",
+    "semantic_hash": ""
   },
   "src/main/java/io/prismio/symbols/Member.java": {
     "mtime": 1790758668.242273,
@@ -690,9 +690,9 @@
     "semantic_hash": "b25ae469326a4b6b20a44d6225978dc0"
   },
   "src/main/java/io/prismio/symbols/SignatureParser.java": {
-    "mtime": 1790840583.628427,
-    "seen": 1790918683.165489,
-    "ast_hash": "2a2a2f283d347634d1f025dfe15e6c55",
+    "mtime": 1791432719.6736956,
+    "seen": 1791434989.334573,
+    "ast_hash": "705e2eabd26693670c6b65287bed87b0",
     "semantic_hash": ""
   },
   "src/main/java/io/prismio/symbols/StdlibIndex.java": {
@@ -702,9 +702,9 @@
     "semantic_hash": "b90864f172cfbb6cce0689ab2e41d63a"
   },
   "src/main/java/io/prismio/symbols/SymbolTable.java": {
-    "mtime": 1790840583.6286652,
-    "seen": 1790918683.16549,
-    "ast_hash": "0d8e8715af8cbfbdbfbe6ddaeb0458b1",
+    "mtime": 1791373481.2473273,
+    "seen": 1791434989.334574,
+    "ast_hash": "6db15e61fff3c6f67119ab569636ef2e",
     "semantic_hash": ""
   },
   "src/main/java/io/prismio/symbols/Tok.java": {
@@ -714,10 +714,10 @@
     "semantic_hash": "93c44121ba59ef3653a5a9fd76971298"
   },
   "src/main/java/io/prismio/symbols/TypeDecl.java": {
-    "mtime": 1790758499.5052369,
-    "seen": 1790918683.165492,
-    "ast_hash": "77f271982461fd8f701a365be51eae78",
-    "semantic_hash": "77f271982461fd8f701a365be51eae78"
+    "mtime": 1791373327.4130833,
+    "seen": 1791434989.3345752,
+    "ast_hash": "a7f9dbf566f553d238e3b03c366b9cc5",
+    "semantic_hash": ""
   },
   "src/main/java/io/prismio/symbols/TypeRef.java": {
     "mtime": 1790840583.6290956,
@@ -726,15 +726,15 @@
     "semantic_hash": ""
   },
   "src/main/java/io/prismio/completion/CompletionPosition.java": {
-    "mtime": 1790786689.05931,
-    "seen": 1790918683.165441,
-    "ast_hash": "47f65e6790754bd5c9258e35cc3b11a8",
+    "mtime": 1791373403.4921622,
+    "seen": 1791434989.33453,
+    "ast_hash": "126f3278cb651c7ad0e9dc7e98b37c72",
     "semantic_hash": ""
   },
   "src/main/java/io/prismio/completion/Keywords.java": {
-    "mtime": 1790786689.0595856,
-    "seen": 1790918683.165441,
-    "ast_hash": "be692515c50244568b1e38e6985da052",
+    "mtime": 1791432713.6267276,
+    "seen": 1791434989.334531,
+    "ast_hash": "17a21c12f0a5069107f06b7047054d70",
     "semantic_hash": ""
   },
   "src/main/java/io/prismio/completion/Lookups.java": {
@@ -750,10 +750,10 @@
     "semantic_hash": "932c772396f32312b94c7e47a408ea61"
   },
   "src/main/java/io/prismio/hints/PrismioTypeHintsProvider.java": {
-    "mtime": 1790759619.0540712,
-    "seen": 1790918683.165462,
-    "ast_hash": "7212dfa72794913291c06fa656577842",
-    "semantic_hash": "7212dfa72794913291c06fa656577842"
+    "mtime": 1791373327.4128482,
+    "seen": 1791434989.334549,
+    "ast_hash": "8426b9c1fadd5308f8a9f75b3d63bd57",
+    "semantic_hash": ""
   },
   "src/main/java/io/prismio/imports/AddImportFix.java": {
     "mtime": 1790758965.4542155,
@@ -768,9 +768,9 @@
     "semantic_hash": "9316e90471e167bd51bf6920bb1a3095"
   },
   "src/main/java/io/prismio/symbols/CompilerIntrinsics.java": {
-    "mtime": 1790840583.6282165,
-    "seen": 1790918683.165486,
-    "ast_hash": "e41bae5247808e7dc8922dee3257832b",
+    "mtime": 1791373327.4125621,
+    "seen": 1791434989.33457,
+    "ast_hash": "9ff27e95d532cc379d97c3ab233f0555",
     "semantic_hash": ""
   },
   "src/main/java/io/prismio/symbols/ProjectSymbols.java": {
@@ -780,15 +780,15 @@
     "semantic_hash": "b794967c7ff87026728febc0be7e9890"
   },
   "src/main/java/io/prismio/symbols/TypeInference.java": {
-    "mtime": 1790840583.628883,
-    "seen": 1790918683.165492,
-    "ast_hash": "6e490147280416336a88876ba4840ff9",
+    "mtime": 1791373327.4133382,
+    "seen": 1791434989.3345761,
+    "ast_hash": "0fef9328c9d8c133aa1706c2812dfb58",
     "semantic_hash": ""
   },
   "src/test/java/io/prismio/PrismioSmartCompletionTest.java": {
-    "mtime": 1790840583.6293259,
-    "seen": 1790918683.165517,
-    "ast_hash": "9d5ea340d6ba509cea323ab54c6a582e",
+    "mtime": 1791432740.3191054,
+    "seen": 1791434989.3346019,
+    "ast_hash": "a31c53154cce77f8ae55ddac9f626822",
     "semantic_hash": ""
   },
   "src/test/java/io/prismio/symbols/CompilerIntrinsicsTest.java": {
@@ -876,27 +876,27 @@
     "semantic_hash": ""
   },
   "src/test/testData/stdlib/option.psm": {
-    "mtime": 1790759317.1015792,
-    "seen": 1790918683.165528,
-    "ast_hash": "e3dbb7bf7025bb7ab55492f45e22942f",
+    "mtime": 1791373327.3921144,
+    "seen": 1791434989.334613,
+    "ast_hash": "10d4b1d65e75061f678296e3bb5b57a5",
     "semantic_hash": ""
   },
   "src/test/testData/stdlib/process.psm": {
-    "mtime": 1790759317.108506,
-    "seen": 1790918683.165528,
-    "ast_hash": "da35f068921a95a26b83aa9aaf1eda31",
+    "mtime": 1791373327.3922935,
+    "seen": 1791434989.334613,
+    "ast_hash": "baf572d0ac5df5b3b096703f5fe31bc4",
     "semantic_hash": ""
   },
   "src/test/testData/stdlib/string.psm": {
-    "mtime": 1790759317.0998192,
-    "seen": 1790918683.165529,
-    "ast_hash": "eb2a1f4f3e29638df3cb97aa19811c37",
+    "mtime": 1791373327.3924012,
+    "seen": 1791434989.334614,
+    "ast_hash": "b4c456fdae4d35b3a144f5332a901194",
     "semantic_hash": ""
   },
   "src/test/testData/stdlib/vec.psm": {
-    "mtime": 1790759317.103279,
-    "seen": 1790918683.1655302,
-    "ast_hash": "890fe3ff57cc13c512378aa4a226f86c",
+    "mtime": 1791373327.3925052,
+    "seen": 1791434989.334614,
+    "ast_hash": "8876f3cc71524178f93508e21f008e24",
     "semantic_hash": ""
   },
   "src/main/java/io/prismio/wizard/PrismioNewProjectWizard.java": {
@@ -945,6 +945,18 @@
     "mtime": 1790925702.9029453,
     "seen": 1790925948.713251,
     "ast_hash": "8cc0de07184f4df5ac4778d083845a58",
+    "semantic_hash": ""
+  },
+  "src/main/java/io/prismio/lang/FreestandingBuiltins.java": {
+    "mtime": 1791432713.626356,
+    "seen": 1791434989.334552,
+    "ast_hash": "19627c99f346e7ebb5868be1759752c0",
+    "semantic_hash": ""
+  },
+  "src/test/java/io/prismio/symbols/FreestandingDeclarationsTest.java": {
+    "mtime": 1791432740.3192,
+    "seen": 1791434989.3346078,
+    "ast_hash": "0debd6d39729966872f7443b4184d1c3",
     "semantic_hash": ""
   }
 }

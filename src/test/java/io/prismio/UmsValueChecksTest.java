@@ -67,6 +67,15 @@ public class UmsValueChecksTest extends BasePlatformTestCase {
 
   public void testExportDynamicIsABoolean() {
     assertEquals(List.of(), errors(target("        exportDynamic = false\n")));
+    // The properties of a target with no operating system under it.
+    assertEquals(List.of(), errors(target("        freestanding = true\n        noRedZone = true\n")));
+    assertEquals(List.of("[UMS2115] target freestanding must be true or false"),
+        errors(target("        freestanding = \"yes\"\n")));
+    assertEquals(List.of("[UMS2001] target triple must be a string literal"),
+        errors(target("        triple = 64\n")));
+    assertEquals(List.of(), errors(target("        codeModel = \"kernel\"\n")));
+    assertEquals(List.of("[UMS2116] target codeModel is small, kernel, medium or large, not \"huge\""),
+        errors(target("        codeModel = \"huge\"\n")));
     assertEquals(List.of("[UMS2115] target exportDynamic must be true or false"),
         errors(target("        exportDynamic = \"yes\"\n")));
     assertEquals(List.of("[UMS2115] target exportDynamic must be true or false"),

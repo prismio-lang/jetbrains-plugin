@@ -7,6 +7,7 @@ import com.intellij.codeInsight.completion.InsertionContext;
 import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
+import io.prismio.lang.FreestandingBuiltins;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -27,6 +28,23 @@ final class Keywords {
     }
     for (String word : new String[] {"public", "private", "internal"}) {
       add(result, word, SPACE, 75);
+    }
+    // Before `fn` and `struct` in a program with no operating system under it.
+    for (String word : new String[] {"export", "naked", "repr(C)", "packed"}) {
+      add(result, word, SPACE, 40);
+    }
+    add(result, "section", SECTION_NAME, 40);
+    add(result, "align", ALIGNMENT, 40);
+  }
+
+  /** {@code __builtin_mem_vstore_u32(address: Usize, value: U32)}, offered by name. */
+  static void freestanding(@NotNull CompletionResultSet result) {
+    for (FreestandingBuiltins.Entry entry : FreestandingBuiltins.all()) {
+      LookupElementBuilder builder = LookupElementBuilder.create(entry.name())
+          .withTailText("(" + entry.parameters() + ")", true)
+          .withTypeText(entry.result().isEmpty() ? entry.help() : entry.result() + " \u2014 " + entry.help(), true)
+          .withInsertHandler(PARENS);
+      result.addElement(PrioritizedLookupElement.withPriority(builder, 10));
     }
   }
 
@@ -88,6 +106,27 @@ final class Keywords {
     }
     result.addElement(PrioritizedLookupElement.withPriority(builder, priority));
   }
+
+  /** {@code section("|")}: the name is a string literal, so the quotes go in. */
+  private static final InsertHandler<LookupElement> SECTION_NAME = (context, item) -> {
+    int tail = context.getTailOffset();
+    context.getDocument().insertString(tail, "(\"\") ");
+    context.getEditor().getCaretModel().moveToOffset(tail + 2);
+  };
+
+  /** {@code align(|)}: a power of two. */
+  private static final InsertHandler<LookupElement> ALIGNMENT = (context, item) -> {
+    int tail = context.getTailOffset();
+    context.getDocument().insertString(tail, "() ");
+    context.getEditor().getCaretModel().moveToOffset(tail + 1);
+  };
+
+  /** A call: parentheses with the caret between them. */
+  private static final InsertHandler<LookupElement> PARENS = (context, item) -> {
+    int tail = context.getTailOffset();
+    context.getDocument().insertString(tail, "()");
+    context.getEditor().getCaretModel().moveToOffset(tail + 1);
+  };
 
   private static final InsertHandler<LookupElement> SPACE = (context, item) -> {
     insertSpace(context);

@@ -1,56 +1,54 @@
-# Graph Report - intellij-plugin  (2026-10-02)
+# Graph Report - intellij-plugin  (2026-10-08)
 
 ## Corpus Check
-- 155 files · ~73,888 words
+- 157 files · ~76,183 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 14 file(s) not represented in the graph (top: .xml 5, .properties 3, (none) 2)
 
 ## Summary
-- 1878 nodes · 5369 edges · 101 communities (36 shown, 65 thin omitted)
+- 1903 nodes · 5444 edges · 109 communities (31 shown, 78 thin omitted)
 - Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 213 edges (avg confidence: 0.81)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `cebb1374`
+- Built from commit: `bc422fe0`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- PrismioCodeStyleSettingsProvider.java
-- DeclarationScanner.java
+- Tok
+- Declaration
 - CompilerSelector
 - TypeInference
 - com.intellij.openapi.util.TextRange
-- com.intellij.testFramework.fixtures.BasePlatformTestCase
-- com.intellij.lang.ASTNode
+- PrismioFormatterTest
+- PrismioTypeHintsProvider.java
 - UmsLexer
 - PrismioSettingsConfigurable
 - UmsStructureViewFactory.java
-- com.intellij.psi.codeStyle.CodeStyleSettings
+- PrismioCompletionContributor.java
 - UmsContext
-- .checkAutoPopup
+- com.intellij.openapi.editor.Editor
 - com.intellij.psi.PsiElement
-- .collectCached
+- PrismioNameReference
 - PrismioScopeResolver
-- UmsParserDefinition.java
+- PrismioBlock.java
 - PrismioExternalAnnotator
 - PrismioToolchainService
-- Kind
 - PrismioColorSettingsPage
 - PrismioSmartCompletionTest
 - PrismioRunConfiguration
 - UmsRunConfigurations
 - SignatureParser
-- list
 - com.intellij.psi.PsiFile
 - PrismioSpellcheckingStrategy.java
 - PrismioLexer
 - PrismioNewProjectWizard.java
-- UmsBraceMatcher.java
-- PrismioAdvancedFeaturesTest.java
+- PrismioBraceMatcher.java
+- notnull
 - PrismioDocRenderDefault.java
-- javax.swing.Icon
-- PrismioExternalAnnotator.java
+- PrismioIcons.java
+- path
 - org.jetbrains.annotations.NotNull
 - PrismioProjectSettings
 - UmsManifest
@@ -59,160 +57,154 @@
 - CreateUmsManifestAction.java
 - UmsFileType
 - ImportPaths
-- PrismioDirectoryProjectGenerator.java
-- arraylist
-- UmsFile.java
+- PrismioDirectoryProjectGenerator
+- PrismioFile.java
 - Prismio Language Support
 - PrismioAdvancedFeaturesTest
-- PrismioRunConfiguration.java
+- PrismioConfigurationFactory.java
 - CompilerIntrinsics
 - .getGotoDeclarationTargets
-- PrismioImports
+- AddImportFix
 - PrismioCodeInsightTest.java
-- PrismioBlock.java
+- PrismioTokenType
 - UmsRunConfigurationsTest
 - TypeRef
 - impl String
-- PrismioCompletionContributor.java
-- .instanceMembers
+- FnSig
 - PrismioGotoDeclarationTest
 - CreatePrismioFileAction.java
 - UmsQuoteHandler
-- PrismioRunProfileState.java
-- UmsColorSettingsPage
+- .arguments
+- PrismioColorSettingsPage.java
 - PrismioSyntaxHighlighter.java
 - PrismioDocumentationProvider
 - com.intellij.lang.Language
 - PrismioFindUsagesProvider
-- Kind
+- TypeDecl
 - Display
-- Option
+- PrismioExternalAnnotator.java
 - Plugin Marketplace Icon
 - com.intellij.openapi.project.Project
-- .collect
+- PrismioChooseByNameContributor.java
 - process.psm
 - math.psm
 - com.intellij.psi.tree.IElementType
 - DeclaredHostTest
-- Declaration
-- .postProcessEnter
+- DeclarationKind
+- PrismioEnterHandler.java
 - org.jetbrains.annotations.Nullable
 - PrismioSettingsConfigurable.java
-- PrismioCommenter
+- PrismioAdvancedFeaturesTest.java
 - .receiverBefore
 - PrismioProjectStepTest
-- com.intellij.lang.PsiParser
+- com.intellij.testFramework.fixtures.BasePlatformTestCase
 - com.intellij.openapi.editor.highlighter.HighlighterIterator
+- com.intellij.codeInsight.completion.CompletionResultSet
+- UmsValueChecksTest
 - ModuleSummary
+- UmsRunConfigurationProducer.java
+- PrismioProjectStep.java
+- UmsContextTest.java
+- PrismioFileType
+- PrismioAstFactory.java
+- PrismioLineBreakpointType
 
 ## God Nodes (most connected - your core abstractions)
 1. `PrismioLexer` - 67 edges
 2. `TypeRef` - 47 edges
-3. `TypeInference` - 41 edges
-4. `SignatureParser` - 37 edges
-5. `PrismioRunConfiguration` - 36 edges
-6. `PrismioSmartCompletionTest` - 36 edges
+3. `SignatureParser` - 42 edges
+4. `TypeInference` - 41 edges
+5. `PrismioSmartCompletionTest` - 40 edges
+6. `PrismioRunConfiguration` - 36 edges
 7. `FnSig` - 31 edges
 8. `UmsContext` - 30 edges
 9. `PrismioTypes` - 27 edges
-10. `PrismioAnnotator` - 26 edges
+10. `Tok` - 27 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Miniature Standard Library Test Mock` --conceptually_related_to--> `Code Completion & Live Templates`  [INFERRED]
   src/test/testData/stdlib/README.md → README.md
 - `Shown` --references--> `FnSig`  [EXTRACTED]
   src/main/java/io/prismio/completion/PrismioParameterInfoHandler.java → src/main/java/io/prismio/symbols/FnSig.java
-- `PrismioRunConfiguration` --references--> `PrismioRunProfileState`  [EXTRACTED]
-  src/main/java/io/prismio/execution/PrismioRunConfiguration.java → src/main/java/io/prismio/execution/PrismioRunProfileState.java
 - `PrismioRunConfigurationEditor` --references--> `PrismioRunConfiguration`  [EXTRACTED]
   src/main/java/io/prismio/execution/PrismioRunConfigurationEditor.java → src/main/java/io/prismio/execution/PrismioRunConfiguration.java
-- `Located` --references--> `UmsManifest`  [EXTRACTED]
-  src/main/java/io/prismio/execution/UmsRunConfigurations.java → src/main/java/io/prismio/ums/UmsManifest.java
+- `PrismioRunConfigurationProducer` --references--> `PrismioRunConfiguration`  [EXTRACTED]
+  src/main/java/io/prismio/execution/PrismioRunConfigurationProducer.java → src/main/java/io/prismio/execution/PrismioRunConfiguration.java
+- `UmsRunConfigurationProducer` --references--> `PrismioRunConfiguration`  [EXTRACTED]
+  src/main/java/io/prismio/execution/UmsRunConfigurationProducer.java → src/main/java/io/prismio/execution/PrismioRunConfiguration.java
 
 ## Import Cycles
 - None detected.
 
-## Communities (101 total, 65 thin omitted)
+## Communities (109 total, 78 thin omitted)
 
-### Community 0 - "PrismioCodeStyleSettingsProvider.java"
-Cohesion: 0.17
-Nodes (3): PrismioCodeStyleSettings, PrismioCodeStylePanel, PrismioCodeStyleSettingsProvider
+### Community 0 - "Tok"
+Cohesion: 0.14
+Nodes (11): CompletionPosition, Kind, EXPRESSION, IMPORT, IMPORT_FROM, MEMBER, NONE, STATEMENT (+3 more)
 
 ### Community 2 - "CompilerSelector"
-Cohesion: 0.14
-Nodes (6): CompilerSelector, Status, ERROR, NEUTRAL, OK, PrismioProjectStep
+Cohesion: 0.19
+Nodes (5): CompilerSelector, Status, ERROR, NEUTRAL, OK
 
 ### Community 4 - "TypeInference"
-Cohesion: 0.17
-Nodes (4): Import, Scope, TypeInference, Value
+Cohesion: 0.18
+Nodes (3): Import, TypeInference, Value
 
 ### Community 5 - "com.intellij.openapi.util.TextRange"
-Cohesion: 0.06
-Nodes (7): PrismioInlineDocumentation, PrismioInlineDocumentationProvider, PrismioBlockCommentPostFormatProcessor, PrismioAstFactory, PrismioIdentifier, PrismioIdentifierManipulator, PrismioReferenceTest
-
-### Community 6 - "com.intellij.testFramework.fixtures.BasePlatformTestCase"
 Cohesion: 0.07
-Nodes (4): PrismioFormatterTest, PrismioParsingTest, PrismioRenameTest, UmsValueChecksTest
+Nodes (6): PrismioInlineDocumentation, PrismioInlineDocumentationProvider, PrismioBlockCommentPostFormatProcessor, PrismioIdentifier, PrismioIdentifierManipulator, PrismioReferenceTest
+
+### Community 7 - "PrismioTypeHintsProvider.java"
+Cohesion: 0.13
+Nodes (3): PrismioFormattingModelBuilder, PrismioTypeHintsProvider, UmsFormattingModelBuilder
 
 ### Community 10 - "UmsStructureViewFactory.java"
-Cohesion: 0.06
-Nodes (7): PrismioStructureViewElement, PrismioStructureViewFactory, PrismioStructureViewModel, Entry, Model, Node, UmsStructureViewFactory
+Cohesion: 0.07
+Nodes (6): PrismioStructureViewElement, PrismioStructureViewFactory, PrismioStructureViewModel, Entry, Node, UmsStructureViewFactory
 
 ### Community 12 - "UmsContext"
-Cohesion: 0.07
+Cohesion: 0.08
 Nodes (13): UmsAnnotator, Role, ARGS, BLOCK, CALL, KEY, VALUE, Token (+5 more)
 
+### Community 13 - "com.intellij.openapi.editor.Editor"
+Cohesion: 0.14
+Nodes (5): PrismioTypedHandler, Result, Err, Ok, impl Result
+
 ### Community 16 - "PrismioScopeResolver"
-Cohesion: 0.25
+Cohesion: 0.26
 Nodes (3): LocalDecl, PrismioScopeResolver, ScopeInfo
 
+### Community 17 - "PrismioBlock.java"
+Cohesion: 0.05
+Nodes (9): PrismioBlock, PrismioParser, PrismioParserDefinition, PrismioCodeStyleSettings, PrismioCodeStylePanel, PrismioCodeStyleSettingsProvider, UmsBlock, UmsParser (+1 more)
+
 ### Community 18 - "PrismioExternalAnnotator"
-Cohesion: 0.07
+Cohesion: 0.08
 Nodes (9): PrismioCheckTarget, PrismioDiagnostic, PrismioDiagnosticParser, AnnotationResult, Checked, InitialInfo, PrismioExternalAnnotator, PrismioCheckTargetTest (+1 more)
 
-### Community 20 - "Kind"
-Cohesion: 0.50
-Nodes (4): Kind, ENUM, STRUCT, TRAIT
-
-### Community 23 - "PrismioRunConfiguration"
-Cohesion: 0.16
-Nodes (3): PrismioRunConfiguration, PrismioRunConfigurationProducer, UmsRunConfigurationProducer
-
 ### Community 24 - "UmsRunConfigurations"
-Cohesion: 0.23
+Cohesion: 0.27
 Nodes (3): Located, Spec, UmsRunConfigurations
 
-### Community 25 - "SignatureParser"
-Cohesion: 0.10
-Nodes (12): CompletionPosition, Kind, EXPRESSION, IMPORT, IMPORT_FROM, MEMBER, NONE, STATEMENT (+4 more)
-
 ### Community 27 - "com.intellij.psi.PsiFile"
-Cohesion: 0.18
-Nodes (3): Keywords, PrismioCompletionContributor, MemberTargets
+Cohesion: 0.16
+Nodes (3): PrismioCompletionContributor, ProjectSymbols, Model
 
 ### Community 28 - "PrismioSpellcheckingStrategy.java"
 Cohesion: 0.21
 Nodes (4): CommentTokenizer, PrismioSpellcheckingStrategy, StringTokenizer, UmsSpellcheckingStrategy
 
 ### Community 29 - "PrismioLexer"
-Cohesion: 0.05
-Nodes (4): PrismioLineBreakpointType, PrismioLexer, PrismioCodeInsightTest, PrismioLexerTest
-
-### Community 32 - "PrismioAdvancedFeaturesTest.java"
-Cohesion: 0.15
-Nodes (3): PrismioConsoleFilter, PrismioRunLineMarkerContributor, UmsTypes
+Cohesion: 0.06
+Nodes (3): PrismioLexer, PrismioCodeInsightTest, PrismioLexerTest
 
 ### Community 33 - "PrismioDocRenderDefault.java"
 Cohesion: 0.17
 Nodes (3): PrismioDocRenderDefault, Startup, PrismioDocRenderDefaultTest
 
-### Community 34 - "javax.swing.Icon"
+### Community 34 - "PrismioIcons.java"
 Cohesion: 0.22
 Nodes (3): PrismioRunConfigurationType, PrismioIcons, Prismio File Icon
-
-### Community 36 - "org.jetbrains.annotations.NotNull"
-Cohesion: 0.13
-Nodes (5): Lookups, FnSig, Param, Member, TypeDecl
 
 ### Community 38 - "UmsManifest"
 Cohesion: 0.20
@@ -224,79 +216,71 @@ Nodes (3): PrismioParameterInfoHandler, Shown, Call
 
 ### Community 40 - "Lookups.java"
 Cohesion: 0.14
-Nodes (5): CallInsertHandler, ArgumentsInsertHandler, AssignmentInsertHandler, BlockInsertHandler, UmsCompletionContributor
+Nodes (7): CallInsertHandler, Entry, FreestandingBuiltins, ArgumentsInsertHandler, AssignmentInsertHandler, BlockInsertHandler, UmsCompletionContributor
 
-### Community 41 - "CreateUmsManifestAction.java"
-Cohesion: 0.09
-Nodes (3): PrismioFormattingModelBuilder, CreateUmsManifestAction, UmsFormattingModelBuilder
-
-### Community 44 - "PrismioDirectoryProjectGenerator.java"
-Cohesion: 0.11
+### Community 44 - "PrismioDirectoryProjectGenerator"
+Cohesion: 0.15
 Nodes (3): Peer, PrismioDirectoryProjectGenerator, Settings
+
+### Community 46 - "PrismioFile.java"
+Cohesion: 0.13
+Nodes (4): PrismioLanguage, PrismioFile, PrismioTokenSets, UmsFile
 
 ### Community 47 - "Prismio Language Support"
 Cohesion: 0.18
 Nodes (12): Contributing Guide, Development Setup & Gradle Guide, JFlex Lexer Guidelines, Code Completion & Live Templates, Formatting & Indentation, Code Navigation & Structure View, Prismio Language Support, Syntax Highlighting & Color Settings (+4 more)
 
 ### Community 50 - "CompilerIntrinsics"
-Cohesion: 0.20
+Cohesion: 0.22
 Nodes (3): CompilerIntrinsics, Entry, CompilerIntrinsicsTest
-
-### Community 54 - "PrismioBlock.java"
-Cohesion: 0.12
-Nodes (4): PrismioLanguage, PrismioTokenSets, PrismioTokenType, UmsTokenType
 
 ### Community 57 - "impl String"
 Cohesion: 0.14
 Nodes (3): impl String, impl StringBuilder, StringBuilder
 
-### Community 59 - ".instanceMembers"
-Cohesion: 0.19
-Nodes (5): Origin, BUILT_IN, EXTENSION, OWN, TRAIT
+### Community 59 - "FnSig"
+Cohesion: 0.16
+Nodes (9): MemberTargets, FnSig, Member, Origin, BUILT_IN, EXTENSION, OWN, TRAIT (+1 more)
 
-### Community 75 - "Kind"
-Cohesion: 0.29
-Nodes (7): Kind, CONSTANT, FIELD, METHOD, PROPERTY, STATIC_METHOD, VARIANT
+### Community 75 - "TypeDecl"
+Cohesion: 0.15
+Nodes (12): Kind, CONSTANT, FIELD, METHOD, PROPERTY, STATIC_METHOD, VARIANT, Kind (+4 more)
 
 ### Community 76 - "Display"
 Cohesion: 0.38
 Nodes (3): impl Display for Int, impl Display for String, Display
 
-### Community 77 - "Option"
-Cohesion: 0.33
-Nodes (4): Option, None, Some, impl Option
-
 ### Community 82 - "process.psm"
 Cohesion: 0.40
 Nodes (3): impl ProcessQuery, ProcessQuery, process
 
-### Community 87 - "Declaration"
-Cohesion: 0.11
-Nodes (12): Declaration, DeclarationKind, CONSTANT, ENUM, ENUM_VARIANT, FIELD, FUNCTION, IMPLEMENTATION (+4 more)
+### Community 87 - "DeclarationKind"
+Cohesion: 0.14
+Nodes (11): DeclarationKind, CONSTANT, ENUM, ENUM_VARIANT, FIELD, FUNCTION, IMPLEMENTATION, PARAMETER (+3 more)
 
 ### Community 102 - "ModuleSummary"
-Cohesion: 0.10
-Nodes (8): Global, ModuleSummary, ProjectSymbols, Interface, Snapshot, StdlibIndex, SymbolTable, StdlibCorpusTest
+Cohesion: 0.18
+Nodes (5): Global, ModuleSummary, Snapshot, SymbolTable, StdlibCorpusTest
 
 ## Knowledge Gaps
 - **52 isolated node(s):** `NONE`, `TOP_LEVEL`, `STATEMENT`, `EXPRESSION`, `TYPE` (+47 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 294 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **65 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 295 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **78 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `PrismioLexer` connect `PrismioLexer` to `DeclarationScanner.java`, `PrismioSyntaxHighlighter.java`, `PrismioExternalAnnotator.java`, `com.intellij.openapi.util.TextRange`, `PrismioFindUsagesProvider`, `.collect`, `PrismioScopeResolver`, `UmsParserDefinition.java`, `PrismioCodeInsightTest.java`, `com.intellij.psi.tree.IElementType`, `PrismioBlock.java`, `SignatureParser`, `.postProcessEnter`?**
-  _High betweenness centrality (0.055) - this node is a cross-community bridge._
-- **Why does `PrismioSmartCompletionTest` connect `PrismioSmartCompletionTest` to `list`, `org.jetbrains.annotations.NotNull`, `com.intellij.testFramework.fixtures.BasePlatformTestCase`?**
-  _High betweenness centrality (0.044) - this node is a cross-community bridge._
-- **Why does `PrismioAdvancedFeaturesTest` connect `PrismioAdvancedFeaturesTest` to `PrismioAdvancedFeaturesTest.java`, `org.jetbrains.annotations.Nullable`, `com.intellij.testFramework.fixtures.BasePlatformTestCase`?**
-  _High betweenness centrality (0.018) - this node is a cross-community bridge._
+- **Why does `PrismioLexer` connect `PrismioLexer` to `Tok`, `Declaration`, `PrismioSyntaxHighlighter.java`, `path`, `com.intellij.openapi.util.TextRange`, `PrismioFindUsagesProvider`, `PrismioFile.java`, `com.intellij.openapi.project.Project`, `PrismioScopeResolver`, `PrismioBlock.java`, `PrismioCodeInsightTest.java`, `com.intellij.psi.tree.IElementType`, `PrismioEnterHandler.java`?**
+  _High betweenness centrality (0.060) - this node is a cross-community bridge._
+- **Why does `PrismioSmartCompletionTest` connect `PrismioSmartCompletionTest` to `com.intellij.testFramework.fixtures.BasePlatformTestCase`, `PrismioProjectSettings`?**
+  _High betweenness centrality (0.038) - this node is a cross-community bridge._
+- **Why does `PrismioFormatterTest` connect `PrismioFormatterTest` to `com.intellij.testFramework.fixtures.BasePlatformTestCase`, `PrismioLexer`?**
+  _High betweenness centrality (0.030) - this node is a cross-community bridge._
 - **What connects `NONE`, `TOP_LEVEL`, `STATEMENT` to the rest of the system?**
   _52 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `CompilerSelector` be split into smaller, more focused modules?**
-  _Cohesion score 0.13846153846153847 - nodes in this community are weakly interconnected._
-- **Should `CompilerSelector.java` be split into smaller, more focused modules?**
-  _Cohesion score 0.13333333333333333 - nodes in this community are weakly interconnected._
+- **Should `Tok` be split into smaller, more focused modules?**
+  _Cohesion score 0.1402116402116402 - nodes in this community are weakly interconnected._
+- **Should `PrismioDirectoryProjectGenerator.java` be split into smaller, more focused modules?**
+  _Cohesion score 0.10333333333333333 - nodes in this community are weakly interconnected._
 - **Should `com.intellij.openapi.util.TextRange` be split into smaller, more focused modules?**
-  _Cohesion score 0.05989110707803993 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06748911465892599 - nodes in this community are weakly interconnected._

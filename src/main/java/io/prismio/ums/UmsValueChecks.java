@@ -95,9 +95,22 @@ public final class UmsValueChecks {
                 "target runtime is \"installed\" or \"none\", not \"" + value.text() + "\"", value));
           }
         }
-        case "exportDynamic" -> {
+        case "exportDynamic", "freestanding", "noRedZone" -> {
           if (!isBoolean(value)) {
-            out.add(problem("UMS2115", "target exportDynamic must be true or false", value));
+            out.add(problem("UMS2115", "target " + key + " must be true or false", value));
+          }
+        }
+        case "triple", "features" -> {
+          if (!isString(value)) {
+            out.add(problem("UMS2001", "target " + key + " must be a string literal", value));
+          }
+        }
+        case "codeModel" -> {
+          if (!isString(value)) {
+            out.add(problem("UMS2001", "target codeModel must be a string literal", value));
+          } else if (!List.of("small", "kernel", "medium", "large").contains(value.text())) {
+            out.add(problem("UMS2116",
+                "target codeModel is small, kernel, medium or large, not \"" + value.text() + "\"", value));
           }
         }
         case "entry" -> {
