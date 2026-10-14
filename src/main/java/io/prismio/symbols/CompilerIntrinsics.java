@@ -129,7 +129,7 @@ public final class CompilerIntrinsics {
       }
     }
     return new FnSig(name, "", owner, List.of("T"), null, List.of(), List.copyOf(parsed),
-        TypeRef.parse(result), true, property, false, FnSig.PUBLIC, "", -1);
+        TypeRef.parse(result), true, property, false, false, FnSig.PUBLIC, "", -1);
   }
 
   /**

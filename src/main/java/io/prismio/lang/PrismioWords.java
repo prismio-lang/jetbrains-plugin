@@ -52,6 +52,9 @@ public final class PrismioWords {
    * {@code *}: {@code import {io, string} from std}; {@code src/parse/decl.psm} for
    * {@code prop}, which declares a property where {@code fn} declares a method, and
    * {@code cold}, which marks a function that rarely runs ({@code cold fn fail()}).
+   * {@code async} before {@code fn}, {@code await} and {@code join} before a name, and
+   * {@code scope} before {@code {}, in {@code src/parse/decl.psm}, {@code expr.psm} and
+   * {@code stmt.psm} (docs/ASYNC_PLAN.md).
    * Also in {@code src/parse/decl.psm}, for programs with no operating system under them
    * (docs/FREESTANDING_PLAN.md): {@code export}, {@code naked}, {@code section("...")}
    * and {@code align(n)} before {@code fn}, and {@code repr(C)} and {@code packed}
@@ -64,6 +67,7 @@ public final class PrismioWords {
       "produce", "borrow", "alias", "free",
       "repeat", "from", "step",
       "prop", "cold",
+      "async", "await", "scope", "join",
       "export", "naked", "section", "align", "repr", "packed");
 
   /**

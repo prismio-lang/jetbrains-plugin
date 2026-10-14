@@ -29,6 +29,7 @@ public record FnSig(
     boolean hasSelf,
     boolean property,
     boolean external,
+    boolean async,
     int visibility,
     @NotNull String doc,
     int offset) {

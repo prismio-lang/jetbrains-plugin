@@ -29,6 +29,7 @@ final class Keywords {
     for (String word : new String[] {"public", "private", "internal"}) {
       add(result, word, SPACE, 75);
     }
+    add(result, "async", SPACE, 78);
     // Before `fn` and `struct` in a program with no operating system under it.
     for (String word : new String[] {"export", "naked", "repr(C)", "packed"}) {
       add(result, word, SPACE, 40);
@@ -70,6 +71,7 @@ final class Keywords {
     add(result, "break", null, 40);
     add(result, "continue", null, 40);
     add(result, "region", SPACE, 30);
+    add(result, "scope", BLOCK, 30);
   }
 
   static void expression(@NotNull CompletionResultSet result) {
@@ -77,6 +79,8 @@ final class Keywords {
     add(result, "match", CONDITION_BLOCK, 30);
     add(result, "none", null, 30);
     add(result, "spawn", SPACE, 30);
+    add(result, "await", SPACE, 30);
+    add(result, "join", SPACE, 20);
   }
 
   static void literals(@NotNull CompletionResultSet result) {

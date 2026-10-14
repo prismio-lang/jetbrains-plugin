@@ -226,10 +226,45 @@ public final class PrismioLexer extends LexerBase {
     if (PrismioWords.STDLIB_TYPES.contains(text)) {
       return PrismioTypes.STDLIB_TYPE;
     }
-    if (PrismioWords.CONTEXTUAL_KEYWORDS.contains(text)) {
+    if (PrismioWords.CONTEXTUAL_KEYWORDS.contains(text) && !isValueNameHere(text)) {
       return PrismioTypes.CONTEXTUAL_KEYWORD;
     }
     return PrismioTypes.IDENTIFIER;
+  }
+
+  /**
+   * The async words are keywords only where the compiler reads them as one, because each is
+   * also a name the compiler's own sources use (a `scope` variable, the std `join` function):
+   * {@code async} directly before {@code fn}, {@code scope} before {@code {}, and
+   * {@code await} and {@code join} before a name (src/parse/expr.psm, stmt.psm, decl.psm). Anywhere
+   * else they stay identifiers, so Find Usages and Go to Declaration still see them.
+   */
+  private boolean isValueNameHere(String text) {
+    boolean async = text.equals("async");
+    boolean scope = text.equals("scope");
+    boolean awaitOrJoin = text.equals("await") || text.equals("join");
+    if (!async && !scope && !awaitOrJoin) {
+      return false;
+    }
+    int at = tokenEnd;
+    while (at < bufferEnd && (buffer.charAt(at) == ' ' || buffer.charAt(at) == '\t')) {
+      at++;
+    }
+    if (at >= bufferEnd) {
+      return true;
+    }
+    char next = buffer.charAt(at);
+    if (scope) {
+      return next != '{';
+    }
+    if (at == tokenEnd) {
+      return true;
+    }
+    if (async) {
+      return !(buffer.length() >= at + 2 && buffer.charAt(at) == 'f' && buffer.charAt(at + 1) == 'n'
+          && (at + 2 == bufferEnd || !isIdentifierPart(buffer.charAt(at + 2))));
+    }
+    return !(Character.isLetter(next) || next == '_');
   }
 
   private IElementType number() {

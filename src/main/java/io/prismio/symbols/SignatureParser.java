@@ -51,6 +51,9 @@ public final class SignatureParser {
 
   // ---------------------------------------------------------------- top level
 
+  /** {@code async} was just skipped before the function about to be parsed. */
+  private boolean sawAsync;
+
   private void parseTopLevel() {
     while (i < toks.size()) {
       int declStart = i;
@@ -91,6 +94,9 @@ public final class SignatureParser {
    */
   private void skipDeclarationModifiers() {
     while (isModifierAt(i)) {
+      if (at("async")) {
+        sawAsync = true;
+      }
       Tok next = peek(1);
       if (next != null && next.type() == PrismioTypes.LPAREN) {
         i = matching(i + 1) + 1;
@@ -107,7 +113,7 @@ public final class SignatureParser {
     Tok t = toks.get(at);
     int after = at + 1;
     switch (t.text()) {
-      case "cold", "export", "naked", "packed" -> {
+      case "cold", "export", "naked", "packed", "async" -> {
       }
       case "section", "align", "repr" -> {
         if (after >= toks.size() || toks.get(after).type() != PrismioTypes.LPAREN) {
@@ -144,7 +150,7 @@ public final class SignatureParser {
       return -1;
     }
     switch (next.text()) {
-      case "fn", "extern", "struct", "enum", "let", "prop", "cold", "trait", "export", "naked",
+      case "fn", "extern", "struct", "enum", "let", "prop", "cold", "async", "trait", "export", "naked",
           "section", "align", "repr", "packed" -> {
         i++;
         return level;
@@ -324,6 +330,8 @@ public final class SignatureParser {
   private @Nullable FnSig parseFunction(int declStart, int visibility, @Nullable TypeRef owner,
       @NotNull List<String> ownerParameters, @Nullable String trait, boolean external) {
     boolean property = at("prop");
+    boolean isAsync = sawAsync;
+    sawAsync = false;
     i++;
     Tok nameTok = peek(0);
     if (nameTok == null || !(nameTok.isName() || nameTok.type() == PrismioTypes.KEYWORD)) {
@@ -397,7 +405,7 @@ public final class SignatureParser {
     }
     int level = visibility >= 0 ? visibility : FnSig.PRIVATE;
     FnSig sig = new FnSig(nameTok.text(), module, owner, ownerParameters, trait, typeParameters,
-        List.copyOf(params), returnType, hasSelf, property, external, level, docBefore(declStart),
+        List.copyOf(params), returnType, hasSelf, property, external, isAsync, level, docBefore(declStart),
         nameTok.start());
     functions.add(sig);
     return sig;
@@ -413,7 +421,7 @@ public final class SignatureParser {
     }
     return switch (t.text()) {
       case "fn", "extern", "struct", "enum", "trait", "impl", "let", "import", "public", "private",
-          "internal", "prop", "cold", "export", "naked", "section", "align", "repr", "packed" -> true;
+          "internal", "prop", "cold", "async", "export", "naked", "section", "align", "repr", "packed" -> true;
       default -> false;
     };
   }
@@ -661,7 +669,10 @@ public final class SignatureParser {
     while (i < close) {
       int declStart = i;
       int visibility = visibilityMarker();
-      if (at("cold")) {
+      while (at("cold") || at("async")) {
+        if (at("async")) {
+          sawAsync = true;
+        }
         i++;
       }
       if (at("fn") || at("prop")) {

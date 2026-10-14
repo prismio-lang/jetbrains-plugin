@@ -84,6 +84,24 @@ public class PrismioSmartCompletionTest extends BasePlatformTestCase {
     assertContainsElements(words, "export", "naked", "section", "packed");
   }
 
+  public void testAsyncIsOfferedAtTopLevelAndAwaitAndScopeInBodies() {
+    assertContainsElements(completeAt("<caret>\n"), "async");
+    List<String> statement = completeAt("""
+        fn main() -> Int {
+            <caret>
+            return 0
+        }
+        """);
+    assertContainsElements(statement, "scope");
+    List<String> expression = completeAt("""
+        fn main() -> Int {
+            let x = <caret>
+            return 0
+        }
+        """);
+    assertContainsElements(expression, "await", "spawn");
+  }
+
   // ------------------------------------------------------------ members
 
   public void testStringLiteralLocalOffersStringMembers() {

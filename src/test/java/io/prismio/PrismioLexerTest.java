@@ -104,6 +104,24 @@ public class PrismioLexerTest extends TestCase {
     }
   }
 
+  /**
+   * `async`, `await`, `join` and `scope` are also names -- a `scope` variable runs through the
+   * compiler's own AIF code and `join` is the std function -- so each is a keyword only where
+   * the parser reads it as one (docs/ASYNC_PLAN.md).
+   */
+  public void testAsyncWordsAreKeywordsOnlyWhereTheyAreRead() {
+    assertEquals(PrismioTypes.CONTEXTUAL_KEYWORD, types("async fn f() {}").get(0));
+    assertEquals(PrismioTypes.CONTEXTUAL_KEYWORD, types("let x = await fetch(1)").get(3));
+    assertEquals(PrismioTypes.CONTEXTUAL_KEYWORD, types("let x = join t").get(3));
+    assertEquals(PrismioTypes.CONTEXTUAL_KEYWORD, types("scope { }").get(0));
+
+    assertEquals(PrismioTypes.IDENTIFIER, types("let scope = 1").get(1));
+    assertEquals(PrismioTypes.IDENTIFIER, types("aif_scope_new(scope, id)").get(2));
+    assertEquals(PrismioTypes.IDENTIFIER, types("let s = join(parts, \",\")").get(3));
+    assertEquals(PrismioTypes.IDENTIFIER, types("let async = 2").get(1));
+    assertEquals(PrismioTypes.IDENTIFIER, types("let await = 2").get(1));
+  }
+
   public void testTypesAreSplitByOrigin() {
     assertEquals(List.of(PrismioTypes.BUILTIN_TYPE), types("Usize"));
     assertEquals(List.of(PrismioTypes.BUILTIN_TYPE), types("String"));

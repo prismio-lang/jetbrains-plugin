@@ -49,6 +49,9 @@ public final class TypeInference {
   private final List<ModuleSummary.Import> imports;
   private int depth;
 
+  /** An {@code await} is about to evaluate the call that follows it. */
+  private boolean awaited;
+
   private TypeInference(@NotNull CharSequence text, @NotNull SymbolTable.Scope scope,
       @NotNull List<ModuleSummary.Import> imports) {
     this.t = Tok.code(Tok.lex(text));
@@ -458,6 +461,8 @@ public final class TypeInference {
    * arguments' types where those are known: {@code vecOf(1, 2)} is a {@code Vec<Int>}.
    */
   private @Nullable TypeRef callResult(@NotNull String name, int open, int close) {
+    boolean wasAwaited = awaited;
+    awaited = false;
     List<int[]> args = argumentRanges(open, close);
     List<FnSig> overloads = scope.functions(name);
     FnSig chosen = null;
@@ -471,6 +476,10 @@ public final class TypeInference {
       chosen = overloads.get(0);
     }
     if (chosen == null || chosen.returnType() == null) {
+      return null;
+    }
+    // An `async fn` called without `await` is a `Future` of its return type.
+    if (chosen.async() && !wasAwaited) {
       return null;
     }
     if (chosen.typeParameters().isEmpty()) {
@@ -503,6 +512,17 @@ public final class TypeInference {
     try {
       Tok first = t.get(a);
       if (first.is("if") || first.is("match") || first.is("spawn") || first.is("region")) {
+        return null;
+      }
+      // `await f(x)` is what `f` returns; `join t` is a task's result, which is not tracked.
+      // `join(...)` with a parenthesis is the std function and is typed as a call.
+      if (first.is("await") && a < b && !t.get(a + 1).is("(")) {
+        awaited = true;
+        TypeRef inner = expr(a + 1, b);
+        awaited = false;
+        return inner;
+      }
+      if (first.is("join") && a < b && !t.get(a + 1).is("(")) {
         return null;
       }
       if (first.is("-") || first.is("+")) {
