@@ -39,7 +39,12 @@ public final class CompilerIntrinsics {
   private static final Logger LOG = Logger.getInstance(CompilerIntrinsics.class);
 
   /** What a probe needs to exercise one member: a receiver named {@code r}, and a use of it. */
-  record Entry(@NotNull FnSig member, @NotNull String setup, @NotNull String use) {}
+  record Entry(@NotNull FnSig member, @NotNull String setup, @NotNull String use,
+      @NotNull String parameters) {
+    Entry(@NotNull FnSig member, @NotNull String setup, @NotNull String use) {
+      this(member, setup, use, "");
+    }
+  }
 
   private static final List<Entry> ENTRIES = entries();
   private static final Map<String, Set<String>> REJECTED = new ConcurrentHashMap<>();
@@ -107,7 +112,94 @@ public final class CompilerIntrinsics {
           "let x = r.unwrapOr(" + scalar[1] + ")"));
       out.add(method(optT, "expect", "", name, optSetup, "let x = r.expect()"));
     }
+
+    // src/sema/pointer.psm: a typed pointer to a scalar is read with `load()`. One entry per
+    // pointee, because a struct pointee has none (its fields are read as `p.field`, which
+    // SymbolTable projects from the declaration) and an owner of `Ptr<Int>` unifies only with
+    // `Ptr<Int>`. The probe takes the pointer as a parameter: nothing in a body makes one.
+    // Stages 3-5 (docs/PTR_PLAN.md) add their methods here, one line each.
+    pointerAddressEntries(out);
+    for (String[] scalar : scalars) {
+      String name = scalar[0];
+      out.add(new Entry(sig(TypeRef.parse("Ptr<" + name + ">"), "load", "", name, false), "",
+          "let x = r.load()", "r: Ptr<" + name + ">"));
+      // A write needs the `mut` capability: the owner says so, and the table matches it.
+      out.add(new Entry(sig(TypeRef.parse("Ptr<mut " + name + ">"), "store", "value: " + name, null, false),
+          "", "r.store(" + scalar[1] + ")", "r: Ptr<mut " + name + ">"));
+      // Stage 5: the one-off volatile access, for a pointer whose type is not volatile.
+      out.add(new Entry(sig(TypeRef.parse("Ptr<" + name + ">"), "readVolatile", "", name, false), "",
+          "let x = r.readVolatile()", "r: Ptr<" + name + ">"));
+      out.add(new Entry(sig(TypeRef.parse("Ptr<mut " + name + ">"), "writeVolatile", "value: " + name, null,
+          false), "", "r.writeVolatile(" + scalar[1] + ")", "r: Ptr<mut " + name + ">"));
+    }
+    atomicEntries(out, scalars);
     return List.copyOf(out);
+  }
+
+  /**
+   * Stage 4 (docs/PTR_PLAN.md): the address mechanics every typed pointer has, whatever it
+   * points at. The owner is {@code Ptr<T>}, so one entry covers a struct and a scalar; a result of
+   * {@code Self} is the receiver as written, capabilities included, which {@code Ptr<T>} could not
+   * say: {@code Ptr<mut Int>.offset(1)} is a {@code Ptr<mut Int>}. The constructors are associated
+   * functions of the written type and need {@code import std.raw}, which is how the module is named.
+   */
+  private static void pointerAddressEntries(List<Entry> out) {
+    TypeRef pointer = TypeRef.parse("Ptr<T>");
+    String param = "r: Ptr<Int>";
+    out.add(new Entry(sig(pointer, "addr", "", "Usize", true), "", "let x = r.addr", param));
+    String[][] methods = {
+        {"offset", "count: Int", "Self", "r.offset(1)"},
+        {"byteOffset", "count: Int", "Self", "r.byteOffset(1)"},
+        {"wrappingOffset", "count: Int", "Self", "r.wrappingOffset(1)"},
+        {"offsetFrom", "other: Ptr<T>", "Int", "r.offsetFrom(r)"},
+        {"isAligned", "alignment: Usize", "Bool", "r.isAligned(4)"},
+        {"sameAs", "other: Ptr<T>", "Bool", "r.sameAs(r)"},
+        {"advance", "count: Int, limit: Ptr<T>", "Self?", "r.advance(1, r)"}};
+    for (String[] m : methods) {
+      out.add(new Entry(sig(pointer, m[0], m[1], m[2], false), "", "let x = " + m[3], param));
+    }
+    String raw = "import std.raw";
+    String[][] constructors = {
+        {"at", "address: Usize", "Self?", "Ptr<mut Int>.at(0)", ""},
+        {"atUnchecked", "address: Usize", "Self", "Ptr<mut Int>.atUnchecked(0)", ""},
+        {"cast", "from: Ptr", "Self", "Ptr<mut U8>.cast(r)", "r: Ptr<mut Int>"},
+        {"castAligned", "from: Ptr", "Self?", "Ptr<mut U8>.castAligned(r)", "r: Ptr<mut Int>"}};
+    for (String[] c : constructors) {
+      out.add(new Entry(sig(pointer, c[0], c[1], c[2], false, false, "std.raw"), raw, "let x = " + c[3], c[4]));
+    }
+  }
+
+  /**
+   * Stage 5 (docs/PTR_PLAN.md): atomics on an integer pointee, the ordering last and written as a
+   * variant of {@code AtomicOrder}, so they need {@code import std.raw}. Float, Bool and Char are
+   * refused by the compiler. A load needs no {@code mut}; every other access does.
+   */
+  private static void atomicEntries(List<Entry> out, String[][] scalars) {
+    List<String> integers = List.of("Int", "I8", "I16", "I64", "Isize", "U8", "U16", "U32", "U64", "Usize");
+    String order = "AtomicOrder.SeqCst";
+    String raw = "import std.raw";
+    for (String[] scalar : scalars) {
+      String name = scalar[0];
+      if (!integers.contains(name)) {
+        continue;
+      }
+      String value = scalar[1];
+      TypeRef readable = TypeRef.parse("Ptr<" + name + ">");
+      TypeRef writable = TypeRef.parse("Ptr<mut " + name + ">");
+      String readParam = "r: Ptr<" + name + ">";
+      String writeParam = "r: Ptr<mut " + name + ">";
+      out.add(new Entry(sig(readable, "atomicLoad", "order: AtomicOrder", name, false, true, "std.raw"), raw,
+          "let x = r.atomicLoad(" + order + ")", readParam));
+      out.add(new Entry(sig(writable, "atomicStore", "value: " + name + ", order: AtomicOrder", null, false,
+          true, "std.raw"), raw, "r.atomicStore(" + value + ", " + order + ")", writeParam));
+      for (String op : List.of("Swap", "Add", "Sub", "And", "Or", "Xor")) {
+        out.add(new Entry(sig(writable, "atomic" + op, "value: " + name + ", order: AtomicOrder", name, false,
+            true, "std.raw"), raw, "let x = r.atomic" + op + "(" + value + ", " + order + ")", writeParam));
+      }
+      out.add(new Entry(sig(writable, "atomicCompareExchange",
+          "expected: " + name + ", desired: " + name + ", order: AtomicOrder", name, false, true, "std.raw"), raw,
+          "let x = r.atomicCompareExchange(" + value + ", " + value + ", " + order + ")", writeParam));
+    }
   }
 
   private static Entry method(TypeRef owner, String name, String params, @Nullable String result,
@@ -121,6 +213,11 @@ public final class CompilerIntrinsics {
 
   private static FnSig sig(TypeRef owner, String name, String params, @Nullable String result,
       boolean property) {
+    return sig(owner, name, params, result, property, true, "");
+  }
+
+  private static FnSig sig(TypeRef owner, String name, String params, @Nullable String result,
+      boolean property, boolean hasSelf, String module) {
     List<FnSig.Param> parsed = new ArrayList<>();
     if (!params.isEmpty()) {
       for (String param : params.split(",")) {
@@ -128,8 +225,8 @@ public final class CompilerIntrinsics {
         parsed.add(new FnSig.Param(parts[0].strip(), TypeRef.parse(parts[1].strip()), ""));
       }
     }
-    return new FnSig(name, "", owner, List.of("T"), null, List.of(), List.copyOf(parsed),
-        TypeRef.parse(result), true, property, false, false, FnSig.PUBLIC, "", -1);
+    return new FnSig(name, module, owner, List.of("T"), null, List.of(), List.copyOf(parsed),
+        TypeRef.parse(result), hasSelf, property, false, false, FnSig.PUBLIC, "", -1);
   }
 
   /**
@@ -218,7 +315,8 @@ public final class CompilerIntrinsics {
     source.append("\nstruct ProbeMessage {\n    value: Int\n}\n\nstruct ProbeBoxed {\n    name: String\n}\n\n");
     for (int k = 0; k < ENTRIES.size(); k++) {
       int first = lineCount(source) + 1;
-      source.append("fn probe").append(k).append("() {\n").append(bodies.get(k)).append("}\n\n");
+      source.append("fn probe").append(k).append('(').append(ENTRIES.get(k).parameters()).append(") {\n")
+          .append(bodies.get(k)).append("}\n\n");
       ranges.add(new int[] {first, lineCount(source)});
     }
     source.append("fn main() -> Int {\n    return 0\n}\n");

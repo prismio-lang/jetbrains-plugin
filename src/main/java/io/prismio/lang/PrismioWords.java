@@ -18,11 +18,12 @@ public final class PrismioWords {
    *
    * <p>Note {@code and} and {@code or}: Prismio spells the logical operators as
    * words. {@code &&} and {@code ||} also lex, but no source in the compiler,
-   * the standard library or the test suite uses them.
+   * the standard library or the test suite uses them. So are {@code is}, {@code is not}
+   * and {@code not}, the words for {@code ==}, {@code !=} and {@code !}.
    */
   public static final Set<String> KEYWORDS = Set.of(
       "import",
-      "match", "if", "else", "and", "or",
+      "match", "if", "else", "and", "or", "is", "not",
       "true", "false",
       "break", "continue", "return", "throw",
       "while", "loop", "for", "in",
@@ -59,6 +60,12 @@ public final class PrismioWords {
    * (docs/FREESTANDING_PLAN.md): {@code export}, {@code naked}, {@code section("...")}
    * and {@code align(n)} before {@code fn}, and {@code repr(C)} and {@code packed}
    * before {@code struct}.
+   *
+   * <p>{@code volatile} is a capability of a typed pointer, written before the pointee with
+   * {@code mut}: {@code Ptr<volatile T>}, {@code Ptr<mut volatile T>} ({@code parsePtrQualifiers}
+   * in {@code src/parse/decl.psm}; docs/PTR_PLAN.md). It is a qualifier only inside a
+   * {@code Ptr<...>} argument list and only when a type follows, so the lexer decides it by its
+   * neighbours rather than by this table alone.
    */
   public static final Set<String> CONTEXTUAL_KEYWORDS = Set.of(
       "public", "private", "internal",
@@ -68,7 +75,8 @@ public final class PrismioWords {
       "repeat", "from", "step",
       "prop", "cold",
       "async", "await", "scope", "join",
-      "export", "naked", "section", "align", "repr", "packed");
+      "export", "naked", "section", "align", "repr", "packed",
+      "volatile");
 
   /**
    * Built-in types — {@code typeFromSemKey} in {@code src/ast/types.psm}.

@@ -507,8 +507,27 @@ public final class SignatureParser {
       i += 2;
     }
     List<TypeRef> args = new ArrayList<>();
+    boolean mutable = false;
+    boolean isVolatile = false;
     if (atText("<")) {
       i++;
+      if (name.toString().equals(TypeRef.POINTER)) {
+        // `Ptr<mut volatile T>`: capabilities before the pointee, in either order (parsePtrQualifiers).
+        while (true) {
+          Tok word = peek(0);
+          Tok after = peek(1);
+          if (word != null && word.is(TypeRef.MUT) && word.type() == PrismioTypes.KEYWORD) {
+            mutable = true;
+          } else if (word != null && word.is(TypeRef.VOLATILE) && after != null
+              && (after.isName() || after.type() == PrismioTypes.KEYWORD
+                  || after.type() == PrismioTypes.LBRACKET)) {
+            isVolatile = true;
+          } else {
+            break;
+          }
+          i++;
+        }
+      }
       while (i < toks.size()) {
         TypeRef arg = readType();
         if (arg != null) {
@@ -535,7 +554,8 @@ public final class SignatureParser {
         break;
       }
     }
-    return optionalSuffix(new TypeRef(name.toString(), List.copyOf(args), false));
+    return optionalSuffix(new TypeRef(name.toString(), List.copyOf(args), false,
+        TypeRef.qualifiers(mutable, isVolatile)));
   }
 
   private TypeRef optionalSuffix(TypeRef type) {

@@ -66,6 +66,64 @@ public class PrismioLexerTest extends TestCase {
         types("a or b"));
   }
 
+  /**
+   * `is`, `is not` and `not` are the words for `==`, `!=` and `!`, written between operands as in
+   * `if x is not none and not done { }`. Each is a keyword, so a condition highlights as it does
+   * with the symbols.
+   */
+  public void testIsAndNotAreKeywords() {
+    assertEquals(List.of(PrismioTypes.IDENTIFIER, PrismioTypes.KEYWORD, PrismioTypes.IDENTIFIER),
+        types("x is y"));
+    assertEquals(List.of(PrismioTypes.IDENTIFIER, PrismioTypes.KEYWORD, PrismioTypes.KEYWORD,
+            PrismioTypes.KEYWORD),
+        types("x is not none"));
+    assertEquals(List.of(PrismioTypes.KEYWORD, PrismioTypes.IDENTIFIER), types("not done"));
+  }
+
+  private static IElementType typeOfWord(String source, String word) {
+    List<String> texts = texts(source);
+    return types(source).get(texts.indexOf(word));
+  }
+
+  /**
+   * `volatile` is a pointer capability only inside `Ptr<...>`, after any `mut` or `volatile`
+   * before it, and only when a type follows (parsePtrQualifiers, src/parse/decl.psm).
+   */
+  public void testVolatileIsAKeywordOnlyAsAPointerCapability() {
+    for (String source : List.of(
+        "Ptr<volatile Header>",
+        "Ptr<mut volatile Header>",
+        "Ptr<volatile mut Header>",
+        "Ptr< volatile\n  Header>",
+        "Ptr<volatile [U8]>",
+        "Ptr<volatile Int>?",
+        "let p: Vec<Ptr<volatile Node>> = []",
+        "fn f(p: Ptr<mut volatile Ptr<Int>>) {}")) {
+      assertEquals(source, PrismioTypes.CONTEXTUAL_KEYWORD, typeOfWord(source, "volatile"));
+    }
+    assertEquals(PrismioTypes.KEYWORD, typeOfWord("Ptr<volatile mut Header>", "mut"));
+  }
+
+  public void testVolatileIsAnIdentifierEverywhereElse() {
+    for (String source : List.of(
+        "let volatile = 1",
+        "volatile + 1",
+        "x.volatile",
+        "Ptr<volatile>",
+        "Ptr<mut volatile>",
+        "Vec<volatile Header>",
+        "f(volatile Header)",
+        "Ptr volatile Header",
+        "Ptr<Header> volatile Header",
+        "volatile Header")) {
+      assertEquals(source, PrismioTypes.IDENTIFIER, typeOfWord(source, "volatile"));
+    }
+  }
+
+  public void testTypedPointerSourceLexesWithoutAGap() {
+    assertCoversInput("fn f(p: Ptr<mut volatile Header>, q: Ptr<volatile Int>?) -> Ptr<Header> {}");
+  }
+
   public void testUnicodeIdentifiersAreOneToken() {
     // UAX #31, as the compiler reads it: a name in any script is one identifier,
     // including a supplementary-plane letter (two UTF-16 units) and a combining

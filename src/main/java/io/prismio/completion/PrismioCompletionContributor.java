@@ -243,7 +243,8 @@ public final class PrismioCompletionContributor extends CompletionContributor {
     Set<String> builtIn = new HashSet<>();
     for (String owner : CompilerIntrinsics.owners(
         PrismioToolchainService.getInstance(file.getProject()).getCompilerExecutable())) {
-      if (builtIn.add(owner)) {
+      // `Ptr` is offered above as a built-in type; it is an owner only for `load`.
+      if (!PrismioWords.BUILTIN_TYPES.contains(owner) && builtIn.add(owner)) {
         result.addElement(PrioritizedLookupElement.withPriority(LookupElementBuilder.create(owner)
             .withIcon(AllIcons.Nodes.Class)
             .withTailText("<>", true)

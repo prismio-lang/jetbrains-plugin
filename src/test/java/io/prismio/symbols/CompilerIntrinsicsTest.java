@@ -36,7 +36,7 @@ public class CompilerIntrinsicsTest extends TestCase {
   }
 
   public void testWithoutACompilerEverythingIsOffered() {
-    assertEquals(Set.of("Vec", "Array", "Channel"), CompilerIntrinsics.owners(null));
+    assertEquals(Set.of("Vec", "Array", "Channel", "Ptr"), CompilerIntrinsics.owners(null));
   }
 
   /** An {@code Int?} is offered its own members, and an {@code Int} none of them. */

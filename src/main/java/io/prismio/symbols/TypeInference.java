@@ -372,15 +372,17 @@ public final class TypeInference {
     }
 
     int k = a + 1;
-    List<TypeRef> typeArgs = List.of();
+    TypeRef asType = new TypeRef(name, List.of(), false);
     if (k <= b && t.get(k).is("<") && looksLikeType(name, a)) {
       int gt = matchingAngle(k);
       if (gt > 0) {
-        typeArgs = typeArguments(k, gt);
+        TypeRef written = typeAt(a, gt);
+        if (written != null) {
+          asType = written;
+        }
         k = gt + 1;
       }
     }
-    TypeRef asType = new TypeRef(name, typeArgs, false);
 
     if (k <= b && t.get(k).type() == PrismioTypes.LPAREN && !t.get(k).newlineBefore()) {
       int close = matching(k);
@@ -397,7 +399,7 @@ public final class TypeInference {
       return Value.of(asType);
     }
     next[0] = k;
-    if (typeArgs.isEmpty()) {
+    if (asType.args().isEmpty()) {
       TypeRef local = variable(name, a);
       if (local != null) {
         return Value.of(local);
@@ -593,13 +595,12 @@ public final class TypeInference {
     StringBuilder text = new StringBuilder();
     for (int k = a; k <= b; k++) {
       text.append(t.get(k).text());
+      // `Ptr<mut Header>`: the space between a capability and its pointee is the one that counts.
+      if (t.get(k).is(TypeRef.MUT) || t.get(k).is(TypeRef.VOLATILE)) {
+        text.append(' ');
+      }
     }
     return TypeRef.parse(text.toString());
-  }
-
-  private @NotNull List<TypeRef> typeArguments(int lt, int gt) {
-    TypeRef whole = typeAt(lt - 1, gt);
-    return whole == null ? List.of() : whole.args();
   }
 
   private static @Nullable TypeRef elementOf(@Nullable TypeRef type) {
@@ -892,7 +893,8 @@ public final class TypeInference {
         level--;
       } else if (tok.is(">>")) {
         level -= 2;
-      } else if (!(tok.isName() || tok.type() == PrismioTypes.COMMA || tok.type() == PrismioTypes.OPTIONAL
+      } else if (!(tok.isName() || tok.is(TypeRef.MUT) || tok.type() == PrismioTypes.COMMA
+          || tok.type() == PrismioTypes.OPTIONAL
           || tok.type() == PrismioTypes.LBRACKET || tok.type() == PrismioTypes.RBRACKET
           || tok.type() == PrismioTypes.COLON || tok.is("+") || tok.type() == PrismioTypes.INTEGER)) {
         return -1;
@@ -917,7 +919,8 @@ public final class TypeInference {
         if (level == 0) {
           return k;
         }
-      } else if (!(tok.isName() || tok.type() == PrismioTypes.COMMA || tok.type() == PrismioTypes.OPTIONAL
+      } else if (!(tok.isName() || tok.is(TypeRef.MUT) || tok.type() == PrismioTypes.COMMA
+          || tok.type() == PrismioTypes.OPTIONAL
           || tok.type() == PrismioTypes.LBRACKET || tok.type() == PrismioTypes.RBRACKET)) {
         return -1;
       }

@@ -17,7 +17,22 @@ import org.jetbrains.annotations.Nullable;
  * {@code Array<T>}, not a Vec: a Vec carries its length and grows, an array carries
  * it in its type ({@code Array<T, N>}) and has a member surface of its own.
  */
-public record TypeRef(@NotNull String name, @NotNull List<TypeRef> args, boolean optional) {
+public record TypeRef(@NotNull String name, @NotNull List<TypeRef> args, boolean optional,
+    @NotNull String qualifiers) {
+
+  /** A typed pointer's name: {@code Ptr<T>}, whose single argument is the pointee. */
+  public static final String POINTER = "Ptr";
+
+  /**
+   * The capabilities a typed pointer writes before its pointee, in the order the compiler
+   * prints them: {@code mut}, {@code volatile}, both, or none. Empty for every other type.
+   */
+  public static final String MUT = "mut";
+  public static final String VOLATILE = "volatile";
+
+  public TypeRef(@NotNull String name, @NotNull List<TypeRef> args, boolean optional) {
+    this(name, args, optional, "");
+  }
 
   public static final TypeRef STRING = simple("String");
   public static final TypeRef INT = simple("Int");
@@ -31,6 +46,33 @@ public record TypeRef(@NotNull String name, @NotNull List<TypeRef> args, boolean
 
   public static @NotNull TypeRef of(@NotNull String name, @NotNull TypeRef... args) {
     return new TypeRef(name, List.of(args), false);
+  }
+
+  /** {@code Ptr<qualifiers pointee>}; the qualifiers are normalised to {@code mut} then {@code volatile}. */
+  public static @NotNull TypeRef pointerTo(@NotNull TypeRef pointee, boolean mutable, boolean isVolatile) {
+    return new TypeRef(POINTER, List.of(pointee), false, qualifiers(mutable, isVolatile));
+  }
+
+  static @NotNull String qualifiers(boolean mutable, boolean isVolatile) {
+    return mutable ? (isVolatile ? MUT + " " + VOLATILE : MUT) : (isVolatile ? VOLATILE : "");
+  }
+
+  /** {@code Ptr<T>}, with or without capabilities: the pointer whose pointee is named. Bare {@code Ptr} is opaque. */
+  public boolean isTypedPointer() {
+    return POINTER.equals(name) && args.size() == 1;
+  }
+
+  /** What a typed pointer points at, or null for any other type. */
+  public @Nullable TypeRef pointee() {
+    return isTypedPointer() ? args.get(0) : null;
+  }
+
+  public boolean isMutablePointer() {
+    return qualifiers.contains(MUT);
+  }
+
+  public boolean isVolatilePointer() {
+    return qualifiers.contains(VOLATILE);
   }
 
   /** {@code Array<element, length>}: what {@code [a, b]} is when nothing says it is a Vec. */
@@ -55,7 +97,7 @@ public record TypeRef(@NotNull String name, @NotNull List<TypeRef> args, boolean
   }
 
   public @NotNull TypeRef withOptional(boolean value) {
-    return value == optional ? this : new TypeRef(name, args, value);
+    return value == optional ? this : new TypeRef(name, args, value, qualifiers);
   }
 
   /** Replaces type parameters by what they stand for; a name not in the map stays as written. */
@@ -71,7 +113,7 @@ public record TypeRef(@NotNull String name, @NotNull List<TypeRef> args, boolean
     for (TypeRef arg : args) {
       substituted.add(arg.substitute(bindings));
     }
-    return new TypeRef(name, substituted, optional);
+    return new TypeRef(name, substituted, optional, qualifiers);
   }
 
   /**
@@ -107,8 +149,30 @@ public record TypeRef(@NotNull String name, @NotNull List<TypeRef> args, boolean
       return null;
     }
     int[] at = {0};
-    TypeRef type = parse(text.replace(" ", ""), at);
-    return type != null && at[0] == text.replace(" ", "").length() ? type : null;
+    String compact = withoutSpaces(text);
+    TypeRef type = parse(compact, at);
+    return type != null && at[0] == compact.length() ? type : null;
+  }
+
+  /**
+   * The text with its spaces removed, except between two word characters: {@code Ptr<mut Header>}
+   * keeps the one that separates a capability from its pointee, and {@code Vec <Int>} loses its.
+   */
+  private static String withoutSpaces(String text) {
+    StringBuilder out = new StringBuilder(text.length());
+    for (int k = 0; k < text.length(); k++) {
+      char c = text.charAt(k);
+      if (c != ' ') {
+        out.append(c);
+      } else if (k > 0 && k + 1 < text.length() && isWord(text.charAt(k - 1)) && isWord(text.charAt(k + 1))) {
+        out.append(c);
+      }
+    }
+    return out.toString();
+  }
+
+  private static boolean isWord(char c) {
+    return Character.isLetterOrDigit(c) || c == '_';
   }
 
   private static @Nullable TypeRef parse(String text, int[] at) {
@@ -136,8 +200,23 @@ public record TypeRef(@NotNull String name, @NotNull List<TypeRef> args, boolean
     }
     String name = text.substring(start, at[0]);
     List<TypeRef> args = new ArrayList<>();
+    boolean mutable = false;
+    boolean isVolatile = false;
     if (at[0] < text.length() && text.charAt(at[0]) == '<') {
       at[0]++;
+      if (name.equals(POINTER)) {
+        while (true) {
+          if (text.startsWith(MUT + " ", at[0])) {
+            mutable = true;
+            at[0] += MUT.length() + 1;
+          } else if (text.startsWith(VOLATILE + " ", at[0])) {
+            isVolatile = true;
+            at[0] += VOLATILE.length() + 1;
+          } else {
+            break;
+          }
+        }
+      }
       while (true) {
         TypeRef arg = parse(text, at);
         if (arg == null) {
@@ -155,7 +234,7 @@ public record TypeRef(@NotNull String name, @NotNull List<TypeRef> args, boolean
         return null;
       }
     }
-    return optionalSuffix(text, at, new TypeRef(name, args, false));
+    return optionalSuffix(text, at, new TypeRef(name, args, false, qualifiers(mutable, isVolatile)));
   }
 
   private static TypeRef optionalSuffix(String text, int[] at, TypeRef type) {
@@ -171,6 +250,9 @@ public record TypeRef(@NotNull String name, @NotNull List<TypeRef> args, boolean
     StringBuilder out = new StringBuilder(name);
     if (!args.isEmpty()) {
       out.append('<');
+      if (!qualifiers.isEmpty()) {
+        out.append(qualifiers).append(' ');
+      }
       for (int i = 0; i < args.size(); i++) {
         if (i > 0) {
           out.append(", ");

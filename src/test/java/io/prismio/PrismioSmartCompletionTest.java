@@ -627,6 +627,31 @@ public class PrismioSmartCompletionTest extends BasePlatformTestCase {
     assertEquals(java.util.Map.of("found", "Int?", "b", "StringBuilder", "n", "Int"), byName);
   }
 
+  /** docs/PTR_PLAN.md: `p.` through a `Ptr<Struct>` offers the struct's fields, and `Ptr<mut Int>` offers `load`. */
+  public void testTypedPointerOffersFieldsOrLoad() {
+    String declarations = """
+        struct Header {
+            magic: U32,
+            payloadLength: U32,
+        }
+
+        """;
+    List<String> fields = completeAt(declarations + """
+        fn verify(p: Ptr<mut Header>) -> Bool {
+            return p.<caret>
+        }
+        """);
+    assertContainsElements(fields, "magic", "payloadLength");
+    assertDoesntContain(fields, "load");
+    List<String> scalar = completeAt(declarations + """
+        fn bump(counter: Ptr<mut volatile Int>) {
+            counter.<caret>
+        }
+        """);
+    assertContainsElements(scalar, "load");
+    assertDoesntContain(scalar, "magic");
+  }
+
   /** The three reports this completion work started from, in the file they were made in. */
   public void testTheSandboxReports() {
     String sandbox = """

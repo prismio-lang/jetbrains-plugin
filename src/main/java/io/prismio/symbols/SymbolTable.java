@@ -128,6 +128,26 @@ public final class SymbolTable {
     }
 
     /**
+     * Whether a member declared on a typed pointer applies to {@code receiver}: {@code load} is
+     * declared once per scalar, on {@code Ptr<Int>}, {@code Ptr<U8>}, and so on, so it must match
+     * the pointee; {@code store} is declared on {@code Ptr<mut Int>}, so it needs a {@code mut} receiver. Other owners are not narrowed by their arguments here.
+     */
+    private static boolean pointeeMatches(@NotNull FnSig fn, @NotNull TypeRef receiver) {
+      TypeRef owner = fn.owner();
+      if (owner == null || !owner.isTypedPointer()) {
+        return true;
+      }
+      return receiver.isTypedPointer()
+          && (!owner.isMutablePointer() || receiver.isMutablePointer())
+          && TypeRef.unify(owner, receiver, fn.ownerParameters(), new HashMap<>());
+    }
+
+    /** A constructor of a typed pointer belongs to a written {@code Ptr<T>}, not to the opaque {@code Ptr}. */
+    private static boolean staticPointerMatches(@NotNull FnSig fn, @NotNull TypeRef type) {
+      return fn.owner() == null || !fn.owner().isTypedPointer() || type.isTypedPointer();
+    }
+
+    /**
      * What {@code receiver.} can be followed by, for an instance of {@code receiver}:
      * its fields, the members its {@code impl} blocks declare, those of the traits it
      * implements, and every free function whose first parameter it can be — the
@@ -148,6 +168,20 @@ public final class SymbolTable {
           }
         }
       }
+      // `p.field` through a `Ptr<Struct>`: the struct's fields, read where they lie. Not through
+      // an optional: `Ptr<T>?` is narrowed by `!= none` first, which the plugin does not follow.
+      TypeRef pointee = receiver.optional() ? null : receiver.pointee();
+      TypeDecl pointed = pointee == null || pointee.optional() ? null : type(pointee.base());
+      if (pointed != null && pointed.kind() == TypeDecl.Kind.STRUCT) {
+        Map<String, TypeRef> bindings = bind(pointed.typeParameters(), pointed.selfType(), pointee);
+        for (FnSig.Param field : pointed.fields()) {
+          if (seen.add("f:" + field.name())) {
+            out.add(new Member(field.name(), Member.Kind.FIELD, Member.Origin.OWN,
+                field.type() == null ? null : throughPointer(field.type().substitute(bindings), receiver),
+                null, "", ""));
+          }
+        }
+      }
 
       Set<String> traits = new LinkedHashSet<>();
       // What the compiler lowers itself answers before a library function of the same name:
@@ -156,7 +190,7 @@ public final class SymbolTable {
       Set<String> lowered = new java.util.HashSet<>();
       for (SymbolTable table : tables) {
         for (FnSig fn : table.ownMembers.getOrDefault(base, List.of())) {
-          if (!fn.hasSelf()) {
+          if (!fn.hasSelf() || !pointeeMatches(fn, receiver)) {
             continue;
           }
           Member member = asMember(fn, receiver, fn.trait() == null
@@ -265,7 +299,7 @@ public final class SymbolTable {
       }
       for (SymbolTable table : tables) {
         for (FnSig fn : table.ownMembers.getOrDefault(base, List.of())) {
-          if (fn.hasSelf() || !seen.add(signatureKey(fn))) {
+          if (fn.hasSelf() || !staticPointerMatches(fn, type) || !seen.add(signatureKey(fn))) {
             continue;
           }
           Member member = asMember(fn, type, fn.trait() == null ? Member.Origin.OWN : Member.Origin.TRAIT);
@@ -294,6 +328,19 @@ public final class SymbolTable {
       TypeRef type = fn.returnType() == null ? null : fn.returnType().substitute(bindings);
       Member.Kind kind = fn.property() ? Member.Kind.PROPERTY : Member.Kind.METHOD;
       return new Member(fn.name(), kind, origin, type, fn, fn.module(), fn.doc());
+    }
+
+    /**
+     * What reading a field of type {@code field} through {@code pointer} gives: the field's own
+     * type, except a struct stored inline, which is a pointer to that storage with the parent's
+     * capabilities, so {@code p.header.magic} reads through two (docs/PTR_PLAN.md).
+     */
+    private @NotNull TypeRef throughPointer(@NotNull TypeRef field, @NotNull TypeRef pointer) {
+      TypeDecl inline = field.optional() ? null : type(field.base());
+      if (inline == null || inline.kind() != TypeDecl.Kind.STRUCT) {
+        return field;
+      }
+      return new TypeRef(TypeRef.POINTER, List.of(field), false, pointer.qualifiers());
     }
 
     private static Map<String, TypeRef> bind(List<String> parameters, TypeRef pattern, TypeRef actual) {

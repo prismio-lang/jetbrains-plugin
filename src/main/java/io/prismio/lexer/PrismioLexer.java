@@ -240,6 +240,9 @@ public final class PrismioLexer extends LexerBase {
    * else they stay identifiers, so Find Usages and Go to Declaration still see them.
    */
   private boolean isValueNameHere(String text) {
+    if (text.equals("volatile")) {
+      return !isPointerQualifier();
+    }
     boolean async = text.equals("async");
     boolean scope = text.equals("scope");
     boolean awaitOrJoin = text.equals("await") || text.equals("join");
@@ -265,6 +268,54 @@ public final class PrismioLexer extends LexerBase {
           && (at + 2 == bufferEnd || !isIdentifierPart(buffer.charAt(at + 2))));
     }
     return !(Character.isLetter(next) || next == '_');
+  }
+
+  /**
+   * {@code volatile} is a pointer capability only inside a {@code Ptr<...>} argument list, after
+   * any {@code mut} or {@code volatile} before it, and only when a type follows
+   * ({@code parsePtrQualifiers}, src/parse/decl.psm). {@code Ptr<volatile>} and a variable named
+   * {@code volatile} stay names.
+   */
+  private boolean isPointerQualifier() {
+    int after = tokenEnd;
+    while (after < bufferEnd && isWhitespace(buffer.charAt(after))) {
+      after++;
+    }
+    if (after >= bufferEnd || !(buffer.charAt(after) == '[' || identifierStartsAt(after))) {
+      return false;
+    }
+    int at = tokenStart;
+    while (true) {
+      at = skipWhitespaceBackward(at);
+      if (at == 0) {
+        return false;
+      }
+      if (buffer.charAt(at - 1) == '<') {
+        at = skipWhitespaceBackward(at - 1);
+        return wordEndingAt(at).equals("Ptr");
+      }
+      String word = wordEndingAt(at);
+      if (!word.equals("mut") && !word.equals("volatile")) {
+        return false;
+      }
+      at -= word.length();
+    }
+  }
+
+  private int skipWhitespaceBackward(int at) {
+    while (at > 0 && isWhitespace(buffer.charAt(at - 1))) {
+      at--;
+    }
+    return at;
+  }
+
+  /** The ASCII identifier that ends at {@code end}, or the empty string. */
+  private String wordEndingAt(int end) {
+    int start = end;
+    while (start > 0 && isIdentifierPart(buffer.charAt(start - 1)) && buffer.charAt(start - 1) < 128) {
+      start--;
+    }
+    return buffer.subSequence(start, end).toString();
   }
 
   private IElementType number() {
