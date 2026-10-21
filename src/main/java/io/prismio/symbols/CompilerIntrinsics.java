@@ -102,7 +102,8 @@ public final class CompilerIntrinsics {
     String[][] scalars = {
         {"Int", "0"}, {"I8", "0 as I8"}, {"I16", "0 as I16"}, {"I64", "0 as I64"},
         {"Isize", "0 as Isize"}, {"U8", "0 as U8"}, {"U16", "0 as U16"}, {"U32", "0 as U32"},
-        {"U64", "0 as U64"}, {"Usize", "0 as Usize"}, {"Float", "0.0"}, {"Bool", "false"},
+        {"U64", "0 as U64"}, {"Usize", "0 as Usize"}, {"Float", "0.0"},
+        {"F32", "0.0"}, {"F16", "0.0"}, {"BF16", "0.0"}, {"F128", "0.0"}, {"Bool", "false"},
         {"Char", "'a'"}};
     for (String[] scalar : scalars) {
       String name = scalar[0];

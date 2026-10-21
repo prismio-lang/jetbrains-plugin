@@ -652,6 +652,48 @@ public class PrismioSmartCompletionTest extends BasePlatformTestCase {
     assertDoesntContain(scalar, "magic");
   }
 
+  /** std.mem's typed allocation: `allocOf` completes with its import, and its result is read through. */
+  public void testTypedAllocationCompletesAndIsTyped() {
+    List<String> names = completeAt("""
+        fn main() {
+            allocO<caret>
+        }
+        """);
+    assertContainsElements(names, "allocOf");
+    List<String> members = completeAt("""
+        import std.mem
+
+        struct Header {
+            magic: U32,
+        }
+
+        fn main() {
+            let h = allocOf<Header>(4)
+            h.<caret>
+        }
+        """);
+    assertContainsElements(members, "magic", "offset", "addr");
+    assertEquals("Ptr<mut Header>", io.prismio.symbols.TypeInference.letTypes(
+        myFixture.getFile().getText(), io.prismio.symbols.ProjectSymbols.scope(myFixture.getFile()),
+        io.prismio.symbols.ProjectSymbols.summary(myFixture.getFile()).imports()).values().iterator().next()
+        .toString());
+  }
+
+  public void testBufferPointerIsAnOptionalBytePointer() {
+    myFixture.configureByText(PrismioFileType.INSTANCE, """
+        import std.mem
+
+        fn main() {
+            let b: Buffer = Buffer.new()
+            let p = b.pointer
+        }
+        """);
+    var file = myFixture.getFile();
+    var types = io.prismio.symbols.TypeInference.letTypes(file.getText(),
+        io.prismio.symbols.ProjectSymbols.scope(file), io.prismio.symbols.ProjectSymbols.summary(file).imports());
+    assertEquals(List.of("Ptr<mut U8>?"), types.values().stream().map(Object::toString).toList());
+  }
+
   /** The three reports this completion work started from, in the file they were made in. */
   public void testTheSandboxReports() {
     String sandbox = """

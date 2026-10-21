@@ -1,0 +1,19 @@
+// Memory -- blocks by address and by typed pointer.
+
+public fn alloc(size: Usize) -> Usize { return mem_alloc(size) }
+public fn free(address: Usize) { mem_free(address) }
+public fn allocOf<T>(count: Int) -> Ptr<mut T> { return Ptr<mut T>.cast(alloc(count)) }
+public fn allocZeroedOf<T>(count: Int) -> Ptr<mut T> { return Ptr<mut T>.cast(alloc(count)) }
+public fn reallocOf<T>(block: Ptr<mut T>, count: Int) -> Ptr<mut T> { return block }
+public fn free<T>(block: Ptr<mut T>) { mem_free(block.addr) }
+
+public struct Buffer {
+    bytes: Int,
+}
+
+impl Buffer {
+    public prop pointer(self) -> Ptr<mut U8>? {
+        if (self.bytes == 0) { return none }
+        return none
+    }
+}

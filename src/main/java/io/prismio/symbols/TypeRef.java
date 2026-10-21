@@ -44,6 +44,22 @@ public record TypeRef(@NotNull String name, @NotNull List<TypeRef> args, boolean
     return new TypeRef(name, List.of(), false);
   }
 
+  /**
+   * {@code Int<N>} / {@code UInt<N>}. A width that has a name is that name -- {@code Int<8>} is
+   * {@code I8}, {@code Int<32>} is {@code Int}, {@code UInt<64>} is {@code U64} -- as the compiler's
+   * parser folds them (src/ast/int_width.psm); any other prints as written.
+   */
+  public static @NotNull TypeRef integer(boolean unsigned, @NotNull String width) {
+    String named = switch (width) {
+      case "8" -> unsigned ? "U8" : "I8";
+      case "16" -> unsigned ? "U16" : "I16";
+      case "32" -> unsigned ? "U32" : "Int";
+      case "64" -> unsigned ? "U64" : "I64";
+      default -> null;
+    };
+    return simple(named != null ? named : (unsigned ? "UInt<" : "Int<") + width + ">");
+  }
+
   public static @NotNull TypeRef of(@NotNull String name, @NotNull TypeRef... args) {
     return new TypeRef(name, List.of(args), false);
   }

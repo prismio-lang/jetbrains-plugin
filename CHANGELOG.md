@@ -9,6 +9,21 @@ names the compiler change it follows. The format follows
 
 ### Added
 
+- **`Int<N>`, `UInt<N>` and the float family** (compiler 0.2.0, `src/ast/int_width.psm`,
+  `src/ast/float_width.psm`).
+  - `F16`, `F32`, `F64`, `F128`, `BF16` and `UInt` highlight as built-in types, and are offered by
+    completion with the rest. `I32` does too: it is another spelling of `Int`, which the plugin's table
+    had left out on the ground that the compiler had no such type.
+  - The signature parser reads the width of `Int<24>` / `UInt<5>` as a number, not a type, and gives a
+    width that has a name that name (`Int<8>` is `I8`, `Int<32>` is `Int`, `UInt<64>` is `U64`) as the
+    compiler's parser does, so a parameter, field or `Vec<Int<24>>` no longer swallows the declaration
+    after it.
+  - The formatter keeps `Int<24>` together instead of spacing it as a comparison; `a < 24` is still one.
+  - `unwrapOr` and `expect` are offered on `F32?`, `F16?`, `BF16?` and `F128?`.
+
+- **`inline`** is a contextual keyword and a declaration modifier, beside `cold`: `inline fn probe()`,
+  at top level or in an `impl` block, in any order with `export`, `naked`, `section` and `align`. The
+  signature parser reads past it and completion offers it before `fn`. Follows the compiler's `inline fn`.
 - **`is`, `is not` and `not`** are keywords. The compiler reads them as `==`, `!=` and `!`
   (`x is 3`, `x is not none and not done`), and the plugin's keyword set stopped at `and` and
   `or`, so they highlighted as plain names.
@@ -55,6 +70,14 @@ names the compiler change it follows. The format follows
   and completion and value checks for the freestanding `build.ums` target properties.
 
 ### Changed
+
+- A visibility marker is read before `struct`, `enum`, `fn`, `let`, `prop` and the like but no
+  longer before `trait` or `impl`, which the compiler refuses (P3001, "traits and impls take no
+  marker").
+- Type inference reads explicit type arguments on a call of a generic function, so
+  `allocOf<Header>(4)` is a `Ptr<mut Header>` (std.mem's `allocOf`, `allocZeroedOf`; `reallocOf`
+  and `free(Ptr<mut T>)` come from the toolchain's std like any other function, as does
+  `Buffer.pointer`, a `Ptr<mut U8>?`).
 
 - Follows `T?` replacing `Option<T>`, the `??` operator and from-imports.
 

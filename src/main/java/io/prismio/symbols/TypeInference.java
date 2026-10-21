@@ -384,6 +384,17 @@ public final class TypeInference {
       }
     }
 
+    // `allocOf<Header>(4)`: explicit type arguments on a call of a generic function.
+    List<TypeRef> explicit = List.of();
+    if (k <= b && t.get(k).is("<") && !looksLikeType(name, a)) {
+      int gt = explicitCallAngle(a, k);
+      if (gt > 0 && gt + 1 <= b) {
+        TypeRef written = typeAt(a, gt);
+        explicit = written == null ? List.of() : written.args();
+        k = gt + 1;
+      }
+    }
+
     if (k <= b && t.get(k).type() == PrismioTypes.LPAREN && !t.get(k).newlineBefore()) {
       int close = matching(k);
       next[0] = close + 1;
@@ -391,7 +402,7 @@ public final class TypeInference {
         // `Type(...)` constructs one (`Map<K, V>()` calls `new`, src/sema/checker.psm).
         return Value.of(asType);
       }
-      return Value.of(callResult(name, k, close));
+      return Value.of(callResult(name, k, close, explicit));
     }
     if (k <= b && t.get(k).type() == PrismioTypes.LBRACE && looksLikeType(name, a)
         && scope.type(name) != null) {
@@ -462,14 +473,15 @@ public final class TypeInference {
    * argument count, and the function's type parameters are bound from the
    * arguments' types where those are known: {@code vecOf(1, 2)} is a {@code Vec<Int>}.
    */
-  private @Nullable TypeRef callResult(@NotNull String name, int open, int close) {
+  private @Nullable TypeRef callResult(@NotNull String name, int open, int close,
+      @NotNull List<TypeRef> explicit) {
     boolean wasAwaited = awaited;
     awaited = false;
     List<int[]> args = argumentRanges(open, close);
     List<FnSig> overloads = scope.functions(name);
     FnSig chosen = null;
     for (FnSig fn : overloads) {
-      if (fn.params().size() == args.size()) {
+      if (fn.params().size() == args.size() && (explicit.isEmpty() || !fn.typeParameters().isEmpty())) {
         chosen = fn;
         break;
       }
@@ -488,6 +500,10 @@ public final class TypeInference {
       return chosen.returnType();
     }
     Map<String, TypeRef> bindings = new HashMap<>();
+    // Written type arguments bind the function's own parameters, in order.
+    for (int k = 0; k < Math.min(explicit.size(), chosen.typeParameters().size()); k++) {
+      bindings.put(chosen.typeParameters().get(k), explicit.get(k));
+    }
     for (int k = 0; k < Math.min(args.size(), chosen.params().size()); k++) {
       TypeRef pattern = chosen.params().get(k).type();
       if (pattern == null) {
@@ -550,8 +566,8 @@ public final class TypeInference {
         if (level != 0) {
           continue;
         }
-        if (tok.is("<") && k > a && t.get(k - 1).isName() && looksLikeType(t.get(k - 1).text(), k - 1)) {
-          int gt = matchingAngle(k);
+        if (tok.is("<") && k > a && t.get(k - 1).isName()) {
+          int gt = looksLikeType(t.get(k - 1).text(), k - 1) ? matchingAngle(k) : explicitCallAngle(k - 1, k);
           if (gt > 0 && gt <= b) {
             k = gt;
             continue;
@@ -654,6 +670,23 @@ public final class TypeInference {
       }
     }
     return null;
+  }
+
+  /**
+   * The {@code >} that closes the type arguments of a call written {@code name<T>(...)}, where the
+   * {@code <} at {@code lt} follows the name at {@code nameAt}; -1 when this is a comparison. It is a call
+   * only when {@code name} is a generic function and no local shadows it.
+   */
+  private int explicitCallAngle(int nameAt, int lt) {
+    String name = t.get(nameAt).text();
+    if (variable(name, nameAt) != null
+        || scope.functions(name).stream().noneMatch(fn -> !fn.typeParameters().isEmpty())) {
+      return -1;
+    }
+    int gt = matchingAngle(lt);
+    boolean call = gt > 0 && gt + 1 < t.size() && t.get(gt + 1).type() == PrismioTypes.LPAREN
+        && !t.get(gt + 1).newlineBefore();
+    return call ? gt : -1;
   }
 
   /** The type the {@code let} whose name is at {@code n} gives it. */

@@ -134,6 +134,15 @@ public class PrismioFormatterTest extends BasePlatformTestCase {
         reformat("fn first<T>(values: List<T>) -> T { }"));
   }
 
+  public void testAnIntegerWidthIsATypeArgument() {
+    // `Int<24>` is a type, not `Int < 24 >`; `a < 24` stays a comparison.
+    assertEquals("let a: Int<24> = 5", reformat("let a: Int<24> = 5"));
+    assertEquals("let b: UInt<5> = 5", reformat("let b: UInt<5> = 5"));
+    assertEquals("let v: Vec<Int<24>> = []", reformat("let v: Vec<Int<24>> = []"));
+    assertEquals("fn pack(p: UInt<5>) -> UInt<16> { }", reformat("fn pack(p: UInt<5>) -> UInt<16> { }"));
+    assertEquals("if (a < 24 and b > 3) { }", reformat("if (a<24 and b>3) { }"));
+  }
+
   public void testAnArrayLengthIsATypeArgument() {
     // benchmarks/prismio/compute.psm came back as `Array < U32, 64 >`, with the
     // loop under it indented as though the `>` had left the line unfinished.

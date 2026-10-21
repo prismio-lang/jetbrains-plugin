@@ -87,7 +87,7 @@ public final class SignatureParser {
   /**
    * The words between a visibility marker and {@code fn} or {@code struct} that say
    * something about the symbol or the layout (src/parse/decl.psm): {@code cold},
-   * {@code export}, {@code naked}, {@code section("...")} and {@code align(n)} before
+   * {@code inline}, {@code export}, {@code naked}, {@code section("...")} and {@code align(n)} before
    * {@code fn}; {@code repr(C)} and {@code packed} before {@code struct}. Each counts
    * only when a declaration word or another modifier follows it, so a variable named
    * {@code export} is still a variable.
@@ -113,7 +113,7 @@ public final class SignatureParser {
     Tok t = toks.get(at);
     int after = at + 1;
     switch (t.text()) {
-      case "cold", "export", "naked", "packed", "async" -> {
+      case "cold", "inline", "export", "naked", "packed", "async" -> {
       }
       case "section", "align", "repr" -> {
         if (after >= toks.size() || toks.get(after).type() != PrismioTypes.LPAREN) {
@@ -133,7 +133,11 @@ public final class SignatureParser {
         || follower.text().equals("prop") || isModifierAt(after);
   }
 
-  /** {@code public}, {@code private} or {@code internal} before a declaration word, or -1. */
+  /**
+   * {@code public}, {@code private} or {@code internal} before a declaration word, or -1. Enums,
+   * structs and fields take one; {@code trait} and {@code impl} do not (P3001: "traits and impls
+   * take no marker"), so a marker before either is not skipped as one.
+   */
   private int visibilityMarker() {
     Tok t = peek(0);
     Tok next = peek(1);
@@ -150,7 +154,7 @@ public final class SignatureParser {
       return -1;
     }
     switch (next.text()) {
-      case "fn", "extern", "struct", "enum", "let", "prop", "cold", "async", "trait", "export", "naked",
+      case "fn", "extern", "struct", "enum", "let", "prop", "cold", "inline", "async", "export", "naked",
           "section", "align", "repr", "packed" -> {
         i++;
         return level;
@@ -421,7 +425,7 @@ public final class SignatureParser {
     }
     return switch (t.text()) {
       case "fn", "extern", "struct", "enum", "trait", "impl", "let", "import", "public", "private",
-          "internal", "prop", "cold", "async", "export", "naked", "section", "align", "repr", "packed" -> true;
+          "internal", "prop", "cold", "inline", "async", "export", "naked", "section", "align", "repr", "packed" -> true;
       default -> false;
     };
   }
@@ -509,6 +513,19 @@ public final class SignatureParser {
     List<TypeRef> args = new ArrayList<>();
     boolean mutable = false;
     boolean isVolatile = false;
+    // `Int<24>`, `UInt<5>`: the argument is a width in bits, not a type.
+    if ((name.toString().equals("Int") || name.toString().equals("UInt")) && atText("<")
+        && peek(1) != null && peek(1).type() == PrismioTypes.INTEGER) {
+      String width = peek(1).text();
+      i += 2;
+      if (atText(">")) {
+        i++;
+      } else if (atText(">>")) {
+        i++;
+        pendingClose = true;
+      }
+      return optionalSuffix(TypeRef.integer(name.toString().equals("UInt"), width));
+    }
     if (atText("<")) {
       i++;
       if (name.toString().equals(TypeRef.POINTER)) {
@@ -689,7 +706,7 @@ public final class SignatureParser {
     while (i < close) {
       int declStart = i;
       int visibility = visibilityMarker();
-      while (at("cold") || at("async")) {
+      while (at("cold") || at("inline") || at("async")) {
         if (at("async")) {
           sawAsync = true;
         }

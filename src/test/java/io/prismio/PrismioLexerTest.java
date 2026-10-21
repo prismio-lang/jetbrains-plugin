@@ -155,7 +155,7 @@ public class PrismioLexerTest extends TestCase {
 
   public void testContextualKeywordsAreTheirOwnToken() {
     for (String word : List.of("public", "private", "internal", "dyn", "spawn", "pin", "unique",
-        "produce", "borrow", "alias", "Self", "type", "step",
+        "produce", "borrow", "alias", "Self", "type", "step", "inline",
         // Before `fn` and `struct` in a program with no operating system under it.
         "export", "naked", "section", "align", "repr", "packed")) {
       assertEquals(word + " is contextual", List.of(PrismioTypes.CONTEXTUAL_KEYWORD), types(word));
@@ -185,9 +185,12 @@ public class PrismioLexerTest extends TestCase {
     assertEquals(List.of(PrismioTypes.BUILTIN_TYPE), types("String"));
     assertEquals(List.of(PrismioTypes.STDLIB_TYPE), types("List"));
     assertEquals(List.of(PrismioTypes.STDLIB_TYPE), types("Result"));
-    // The compiler's table defines I8, I16 and I64 but never a 32-bit signed
-    // type, so this must not be highlighted as one.
-    assertEquals(List.of(PrismioTypes.IDENTIFIER), types("I32"));
+    // `I32` is another spelling of `Int` (the parser renames it), and the floats
+    // and the `Int<N>` constructors are types too.
+    assertEquals(List.of(PrismioTypes.BUILTIN_TYPE), types("I32"));
+    for (String name : List.of("F16", "F32", "F64", "F128", "BF16", "UInt", "Int")) {
+      assertEquals(name, List.of(PrismioTypes.BUILTIN_TYPE), types(name));
+    }
   }
 
   public void testRangeIsNotTwoDotsAndNotAFloat() {

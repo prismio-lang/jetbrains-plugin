@@ -233,9 +233,22 @@ final class PrismioBlock extends AbstractBlock {
       return false;
     }
     ASTNode next = tokens.get(index + 1);
-    return tokens.get(index - 1).getElementType() == PrismioTypes.COMMA
-        && (isAngleClose(next)
-            || (next.getElementType() == PrismioTypes.SHIFT_OP && ">>".equals(next.getText())));
+    boolean closes = isAngleClose(next)
+        || (next.getElementType() == PrismioTypes.SHIFT_OP && ">>".equals(next.getText()));
+    if (!closes) {
+      return false;
+    }
+    if (tokens.get(index - 1).getElementType() == PrismioTypes.COMMA) {
+      return true;
+    }
+    // `Int<24>` and `UInt<5>`: the width of an integer type, the only other number a type
+    // argument list holds (src/ast/int_width.psm).
+    return index >= 2 && isAngleOpen(tokens.get(index - 1))
+        && isIntegerWidthConstructor(tokens.get(index - 2).getText());
+  }
+
+  private static boolean isIntegerWidthConstructor(String name) {
+    return "Int".equals(name) || "UInt".equals(name);
   }
 
   /** What a type-argument list may contain, including a `+` joining two bounds. */

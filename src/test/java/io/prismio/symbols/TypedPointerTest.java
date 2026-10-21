@@ -287,4 +287,86 @@ public class TypedPointerTest extends TestCase {
     assertNotNull(receiver);
     assertEquals("Ptr<mut volatile Header>", receiver.type().toString());
   }
+
+  // ---------------------------------------------------------------- std.mem
+
+  /** std/mem.psm's typed-pointer surface, as it declares it. */
+  private static final String MEM = """
+      public fn alloc(size: Usize) -> Usize { return 0 }
+      public fn free(address: Usize) { }
+      public fn allocOf<T>(count: Int) -> Ptr<mut T> { return alloc(count) }
+      public fn allocZeroedOf<T>(count: Int) -> Ptr<mut T> { return alloc(count) }
+      public fn reallocOf<T>(block: Ptr<mut T>, count: Int) -> Ptr<mut T> { return block }
+      public fn free<T>(block: Ptr<mut T>) { }
+
+      public struct Buffer {
+          bytes: Int,
+      }
+
+      impl Buffer {
+          public prop pointer(self) -> Ptr<mut U8>? {
+              return none
+          }
+      }
+      """;
+
+  private static TypeRef afterMem(String params, String expression) {
+    String source = DECLARATIONS + MEM + "fn f(" + params + ") {\n    " + expression + ".\n}\n";
+    SymbolTable.Scope scope = scopeOf(MEM + "fn f(" + params + ") {\n    " + expression + ".\n}\n");
+    TypeInference.Receiver receiver = TypeInference.receiverAt(source,
+        source.indexOf(expression + ".\n") + expression.length() + 1, scope, List.of());
+    return receiver == null ? null : receiver.type();
+  }
+
+  public void testAllocOfWithExplicitTypeArgumentsIsAPointerToThatType() {
+    assertEquals("Ptr<mut Header>", afterMem("", "allocOf<Header>(4)").toString());
+    assertEquals("Ptr<mut Header>", afterMem("", "allocZeroedOf<Header>(4)").toString());
+    assertEquals("U32", afterMem("", "allocOf<Header>(4).magic").toString());
+    assertEquals("Ptr<mut Int>", afterMem("", "allocOf<Int>(1).offset(1)").toString());
+    // The block's own type binds a call with no written arguments.
+    assertEquals("Ptr<mut Header>", afterMem("p: Ptr<mut Header>", "reallocOf(p, 8)").toString());
+  }
+
+  public void testALetOfAnAllocationIsTyped() {
+    String body = "fn f() {\n    let h = allocOf<Header>(4)\n    h.\n}\n";
+    String source = DECLARATIONS + MEM + body;
+    TypeInference.Receiver receiver = TypeInference.receiverAt(source, source.indexOf("    h.") + 6,
+        scopeOf(MEM + body), List.of());
+    assertNotNull(receiver);
+    assertEquals("Ptr<mut Header>", receiver.type().toString());
+  }
+
+  public void testComparisonsAreNotTakenForTypeArguments() {
+    // `allocOf < Header > (4)` is read as a call only where `allocOf` is a generic function.
+    assertEquals("Bool", afterMem("allocOf: Int, Header: Int", "(allocOf < Header)").toString());
+  }
+
+  public void testMemFunctionsAndBufferPointerAreMembers() {
+    SymbolTable.Scope scope = scopeOf(MEM);
+    assertEquals("Ptr<mut U8>?", scope.instanceMembers(TypeRef.parse("Buffer")).stream()
+        .filter(m -> m.name().equals("pointer")).findFirst().orElseThrow().type().toString());
+    assertEquals(1, scope.functions("allocOf").size());
+    // `free` has the address form and the typed one.
+    assertEquals(2, scope.functions("free").size());
+  }
+
+  // ------------------------------------------------------------ visibility
+
+  public void testNoMarkerIsTakenBeforeATraitOrAnImpl() {
+    ModuleSummary summary = SignatureParser.parse("""
+        public trait Shape {
+            fn area(self) -> Int
+        }
+
+        public struct Square { side: Int }
+        public enum Mode { Idle, Busy }
+        internal fn helper() -> Int { return 1 }
+        """, "app");
+    assertEquals(List.of("Shape", "Square", "Mode"),
+        summary.types().stream().map(TypeDecl::name).toList());
+    assertEquals(TypeDecl.Kind.TRAIT, summary.types().get(0).kind());
+    assertEquals(1, summary.functions().stream().filter(f -> f.name().equals("helper")).count());
+    assertEquals(FnSig.INTERNAL, summary.functions().stream().filter(f -> f.name().equals("helper"))
+        .findFirst().orElseThrow().visibility());
+  }
 }

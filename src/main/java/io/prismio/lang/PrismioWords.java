@@ -52,7 +52,9 @@ public final class PrismioWords {
    * {@code src/parse/parser.psm} for {@code from}, which follows an import group or
    * {@code *}: {@code import {io, string} from std}; {@code src/parse/decl.psm} for
    * {@code prop}, which declares a property where {@code fn} declares a method, and
-   * {@code cold}, which marks a function that rarely runs ({@code cold fn fail()}).
+   * {@code cold}, which marks a function that rarely runs ({@code cold fn fail()}), and
+   * {@code inline}, its opposite, a function inlined into every caller
+   * ({@code inline fn probe()}).
    * {@code async} before {@code fn}, {@code await} and {@code join} before a name, and
    * {@code scope} before {@code {}, in {@code src/parse/decl.psm}, {@code expr.psm} and
    * {@code stmt.psm} (docs/ASYNC_PLAN.md).
@@ -73,23 +75,27 @@ public final class PrismioWords {
       "pin", "unique",
       "produce", "borrow", "alias", "free",
       "repeat", "from", "step",
-      "prop", "cold",
+      "prop", "cold", "inline",
       "async", "await", "scope", "join",
       "export", "naked", "section", "align", "repr", "packed",
       "volatile");
 
   /**
-   * Built-in types — {@code typeFromSemKey} in {@code src/ast/types.psm}.
+   * Built-in types — {@code typeFromSemKey} and {@code typeFromAnnotation} in
+   * {@code src/ast/types.psm}.
    *
-   * <p>There is deliberately no {@code I32}: the compiler's table has I8, I16,
-   * I64 and Isize but never defined a 32-bit signed type, while the unsigned
-   * side has all four. Listing one here would highlight a type that does not
-   * resolve.
+   * <p>{@code I32} is another spelling of {@code Int} (the parser renames it), so it
+   * is listed. {@code UInt} is the constructor of {@code UInt<N>}, and {@code Int}
+   * of {@code Int<N>}; {@code F16}, {@code F32}, {@code F64}, {@code F128} and
+   * {@code BF16} are the float family (src/ast/float_width.psm). {@code F} and
+   * {@code Float} followed by a width are compile errors, so they are not listed
+   * as taking one.
    */
   public static final Set<String> BUILTIN_TYPES = Set.of(
-      "Int", "Float", "Bool", "Char", "String", "Ptr", "Void",
-      "I8", "I16", "I64", "Isize",
-      "U8", "U16", "U32", "U64", "Usize");
+      "Int", "UInt", "Float", "Bool", "Char", "String", "Ptr", "Void",
+      "I8", "I16", "I32", "I64", "Isize",
+      "U8", "U16", "U32", "U64", "Usize",
+      "F16", "F32", "F64", "F128", "BF16");
 
   /** Generic types the standard library ships; not known to the compiler itself. */
   public static final Set<String> STDLIB_TYPES = Set.of(
