@@ -66,4 +66,25 @@ public class FreestandingDeclarationsTest extends TestCase {
     assertEquals("after", summary.functions().get(0).name());
     assertEquals(2, summary.globals().size());
   }
+
+  /**
+   * The function markers of src/parse/modifiers.psm -- including the ones that take an argument
+   * ({@code inline(always)}) -- and {@code const} declarations leave what they modify visible.
+   */
+  public void testFunctionMarkersAndConstDeclarations() {
+    ModuleSummary summary = parse("""
+        inline(always) fn a() {}
+        hot noreturn fn b() {}
+        public const fn c() -> Int { return 1 }
+        noinline cold fn d() {}
+        const CELLS = 64
+        public const LIMIT: U8 = 200
+        const hot = 3
+        fn after() {}
+        """);
+    assertEquals(java.util.List.of("a", "b", "c", "d", "after"),
+        summary.functions().stream().map(f -> f.name()).toList());
+    assertEquals(java.util.List.of("CELLS", "LIMIT", "hot"),
+        summary.globals().stream().map(g -> g.name()).toList());
+  }
 }

@@ -41,7 +41,7 @@ public final class PrismioScopeResolver {
 
     // 2. Variable declarations: `let name` or `let mut name`
     PsiElement prev = previousSignificant(element);
-    if (isKeyword(prev, "let")) {
+    if (isKeyword(prev, "let") || isConstWord(prev)) {
       return true;
     }
     if (isKeyword(prev, "mut") && isKeyword(previousSignificant(prev), "let")) {
@@ -220,9 +220,13 @@ public final class PrismioScopeResolver {
           inFn = true;
           fnStartOffset = start;
           pendingParams.clear();
+          pendingLet = false;
         } else if ("let".equals(tokenText)) {
           pendingLet = true;
         }
+      } else if (tokenType == PrismioTypes.CONTEXTUAL_KEYWORD && "const".equals(tokenText)) {
+        // `const name = value` declares a local as `let name` does.
+        pendingLet = true;
       } else if (tokenType == PrismioTypes.LPAREN) {
         if (inFn && !inFnParams && braceDepth == 0) {
           inFnParams = true;
@@ -331,6 +335,13 @@ public final class PrismioScopeResolver {
         || type == PrismioTypes.LINE_COMMENT
         || type == PrismioTypes.BLOCK_COMMENT
         || type == PrismioTypes.DOC_COMMENT;
+  }
+
+  /** {@code const} before a name declares one, as {@code let} does (src/parse/decl.psm). */
+  private static boolean isConstWord(@Nullable PsiElement element) {
+    return element != null && element.getNode() != null
+        && element.getNode().getElementType() == PrismioTypes.CONTEXTUAL_KEYWORD
+        && "const".equals(element.getText());
   }
 
   private static boolean isKeyword(@Nullable PsiElement element, @NotNull String keyword) {

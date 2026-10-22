@@ -31,6 +31,10 @@ final class Keywords {
     }
     add(result, "async", SPACE, 78);
     add(result, "inline", SPACE, 40);
+    add(result, "inline(always)", SPACE, 40);
+    for (String word : new String[] {"noinline", "hot", "cold", "noreturn", "const"}) {
+      add(result, word, SPACE, 40);
+    }
     // Before `fn` and `struct` in a program with no operating system under it.
     for (String word : new String[] {"export", "naked", "repr(C)", "packed"}) {
       add(result, word, SPACE, 40);

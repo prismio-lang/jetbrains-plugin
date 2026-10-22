@@ -72,7 +72,7 @@ public final class SignatureParser {
         case "enum" -> parseEnum(declStart);
         case "trait" -> parseTrait(declStart);
         case "impl" -> parseImpl();
-        case "let" -> parseGlobal(declStart, null);
+        case "let", "const" -> parseGlobal(declStart, null);
         default -> {
           if (t.type() == PrismioTypes.LBRACE) {
             skipBalanced();
@@ -86,8 +86,9 @@ public final class SignatureParser {
 
   /**
    * The words between a visibility marker and {@code fn} or {@code struct} that say
-   * something about the symbol or the layout (src/parse/decl.psm): {@code cold},
-   * {@code inline}, {@code export}, {@code naked}, {@code section("...")} and {@code align(n)} before
+   * something about the symbol or the layout (src/parse/modifiers.psm): {@code cold}, {@code hot},
+   * {@code inline}, {@code inline(always)}, {@code inline(never)}, {@code noinline}, {@code noreturn},
+   * {@code const}, {@code export}, {@code naked}, {@code section("...")} and {@code align(n)} before
    * {@code fn}; {@code repr(C)} and {@code packed} before {@code struct}. Each counts
    * only when a declaration word or another modifier follows it, so a variable named
    * {@code export} is still a variable.
@@ -113,7 +114,13 @@ public final class SignatureParser {
     Tok t = toks.get(at);
     int after = at + 1;
     switch (t.text()) {
-      case "cold", "inline", "export", "naked", "packed", "async" -> {
+      case "cold", "hot", "noinline", "noreturn", "const", "export", "naked", "packed", "async" -> {
+      }
+      case "inline" -> {
+        // `inline(always)` and `inline(never)` carry an argument; a plain `inline` does not.
+        if (after < toks.size() && toks.get(after).type() == PrismioTypes.LPAREN) {
+          after = matching(after) + 1;
+        }
       }
       case "section", "align", "repr" -> {
         if (after >= toks.size() || toks.get(after).type() != PrismioTypes.LPAREN) {
@@ -154,8 +161,8 @@ public final class SignatureParser {
       return -1;
     }
     switch (next.text()) {
-      case "fn", "extern", "struct", "enum", "let", "prop", "cold", "inline", "async", "export", "naked",
-          "section", "align", "repr", "packed" -> {
+      case "fn", "extern", "struct", "enum", "let", "const", "prop", "cold", "hot", "inline", "noinline",
+          "noreturn", "async", "export", "naked", "section", "align", "repr", "packed" -> {
         i++;
         return level;
       }
@@ -424,8 +431,9 @@ public final class SignatureParser {
       return false;
     }
     return switch (t.text()) {
-      case "fn", "extern", "struct", "enum", "trait", "impl", "let", "import", "public", "private",
-          "internal", "prop", "cold", "inline", "async", "export", "naked", "section", "align", "repr", "packed" -> true;
+      case "fn", "extern", "struct", "enum", "trait", "impl", "let", "const", "import", "public", "private",
+          "internal", "prop", "cold", "hot", "inline", "noinline", "noreturn", "async", "export", "naked",
+          "section", "align", "repr", "packed" -> true;
       default -> false;
     };
   }
@@ -706,15 +714,10 @@ public final class SignatureParser {
     while (i < close) {
       int declStart = i;
       int visibility = visibilityMarker();
-      while (at("cold") || at("inline") || at("async")) {
-        if (at("async")) {
-          sawAsync = true;
-        }
-        i++;
-      }
+      skipDeclarationModifiers();
       if (at("fn") || at("prop")) {
         parseFunction(declStart, visibility, owner, parameters, trait, false);
-      } else if (at("let")) {
+      } else if (at("let") || at("const")) {
         parseGlobal(declStart, owner);
       } else if (atType(PrismioTypes.LBRACE)) {
         skipBalanced();

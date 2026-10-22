@@ -9,6 +9,14 @@ names the compiler change it follows. The format follows
 
 ### Added
 
+- **Function markers and `const`** (compiler 0.2.0, `src/parse/modifiers.psm`). `hot`, `noinline`, `noreturn`,
+  `const`, `inline(always)` and `inline(never)` highlight as contextual keywords and are offered by completion.
+  `hot`, `const`, `noinline` and `noreturn` are keywords only before another word, so a variable called `hot` or
+  `const` stays a name. The signature parser reads the argument of `inline(...)`, so a declaration written with
+  any marker keeps its symbol, in an `impl` block too (it used to read only `cold`, `inline` and `async` there).
+  `const NAME = value` is a constant: a declaration for navigation, a local for rename and find usages, a global
+  for completion.
+
 - **`Int<N>`, `UInt<N>` and the float family** (compiler 0.2.0, `src/ast/int_width.psm`,
   `src/ast/float_width.psm`).
   - `F16`, `F32`, `F64`, `F128`, `BF16` and `UInt` highlight as built-in types, and are offered by

@@ -245,7 +245,10 @@ public final class PrismioLexer extends LexerBase {
     }
     boolean async = text.equals("async");
     boolean scope = text.equals("scope");
-    boolean awaitOrJoin = text.equals("await") || text.equals("join");
+    // Words that are markers only when another word follows: `hot fn`, `const CELLS`. A
+    // variable called `hot` or `const` is followed by an operator or a bracket.
+    boolean awaitOrJoin = text.equals("await") || text.equals("join") || text.equals("hot")
+        || text.equals("const") || text.equals("noinline") || text.equals("noreturn");
     if (!async && !scope && !awaitOrJoin) {
       return false;
     }

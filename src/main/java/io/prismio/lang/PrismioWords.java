@@ -53,8 +53,11 @@ public final class PrismioWords {
    * {@code *}: {@code import {io, string} from std}; {@code src/parse/decl.psm} for
    * {@code prop}, which declares a property where {@code fn} declares a method, and
    * {@code cold}, which marks a function that rarely runs ({@code cold fn fail()}), and
-   * {@code inline}, its opposite, a function inlined into every caller
-   * ({@code inline fn probe()}).
+   * the other function markers of {@code src/parse/modifiers.psm}: {@code hot},
+   * {@code inline} (a hint), {@code inline(always)}, {@code inline(never)}, {@code noinline}
+   * and {@code noreturn}, and {@code const} before {@code fn} ({@code const fn area()}) or a
+   * name ({@code const CELLS = area(8)}, a declaration whose value is worked out at compile
+   * time).
    * {@code async} before {@code fn}, {@code await} and {@code join} before a name, and
    * {@code scope} before {@code {}, in {@code src/parse/decl.psm}, {@code expr.psm} and
    * {@code stmt.psm} (docs/ASYNC_PLAN.md).
@@ -75,7 +78,7 @@ public final class PrismioWords {
       "pin", "unique",
       "produce", "borrow", "alias", "free",
       "repeat", "from", "step",
-      "prop", "cold", "inline",
+      "prop", "cold", "hot", "inline", "noinline", "noreturn", "const",
       "async", "await", "scope", "join",
       "export", "naked", "section", "align", "repr", "packed",
       "volatile");

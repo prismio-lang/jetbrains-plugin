@@ -180,6 +180,21 @@ public class PrismioLexerTest extends TestCase {
     assertEquals(PrismioTypes.IDENTIFIER, types("let await = 2").get(1));
   }
 
+  /**
+   * The function markers of src/parse/modifiers.psm are keywords only before another word, so a
+   * variable called {@code hot} or {@code const} stays a name.
+   */
+  public void testFunctionMarkersAreKeywordsOnlyBeforeAWord() {
+    for (String source : List.of("hot fn f() {}", "noreturn fn f() {}", "noinline fn f() {}",
+        "const fn f() {}", "const CELLS = 1", "inline(always) fn f() {}", "inline(never) fn f() {}")) {
+      assertEquals(source, PrismioTypes.CONTEXTUAL_KEYWORD, types(source).get(0));
+    }
+    assertEquals(PrismioTypes.IDENTIFIER, types("let hot = 1").get(1));
+    assertEquals(PrismioTypes.IDENTIFIER, types("let const = 1").get(1));
+    assertEquals(PrismioTypes.IDENTIFIER, types("hot(1)").get(0));
+    assertEquals(PrismioTypes.IDENTIFIER, types("x = noreturn + 1").get(2));
+  }
+
   public void testTypesAreSplitByOrigin() {
     assertEquals(List.of(PrismioTypes.BUILTIN_TYPE), types("Usize"));
     assertEquals(List.of(PrismioTypes.BUILTIN_TYPE), types("String"));

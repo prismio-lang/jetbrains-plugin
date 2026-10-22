@@ -52,6 +52,9 @@ public final class DeclarationScanner {
         } else if (!"mut".equals(tokenText)) {
           pendingKind = null;
         }
+      } else if (tokenType == PrismioTypes.CONTEXTUAL_KEYWORD && "const".equals(tokenText)) {
+        // `const CELLS = area(8)`: a constant, as `let` makes one. `const fn` is overridden by `fn`.
+        pendingKind = braceDepth == 0 ? DeclarationKind.CONSTANT : null;
       } else if (tokenType == PrismioTypes.IDENTIFIER && pendingKind != null) {
         PsiElement element = file.findElementAt(lexer.getTokenStart());
         if (element != null) {
