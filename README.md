@@ -7,7 +7,7 @@
 **JetBrains IDE support for the [Prismio](https://prismio.org) programming language.**
 
 [![JetBrains Plugin](https://img.shields.io/badge/JetBrains-Plugin-orange?logo=jetbrains&logoColor=white)](https://plugins.jetbrains.com/)
-[![Version](https://img.shields.io/badge/version-0.1.0-blue)](https://github.com/prismio-lang/intellij-plugin/releases)
+[![Version](https://img.shields.io/badge/version-0.1.0-blue)](https://github.com/prismio-lang/jetbrains-plugin/releases)
 [![License](https://img.shields.io/badge/license-Apache%202.0-green)](LICENSE)
 [![IntelliJ](https://img.shields.io/badge/IntelliJ%20IDEA-2026.2%2B-blueviolet?logo=intellij-idea)](https://www.jetbrains.com/idea/)
 
@@ -88,7 +88,7 @@ platform, plus the spellchecker and debugger modules every IDE ships.
 You need JDK 26. Gradle comes with the repository.
 
 ```bash
-git clone https://github.com/prismio-lang/intellij-plugin.git
+git clone https://github.com/prismio-lang/jetbrains-plugin.git
 cd intellij-plugin
 ./gradlew buildPlugin   # the zip lands in build/distributions/
 ./gradlew runIde        # opens a test IDE with the plugin installed
