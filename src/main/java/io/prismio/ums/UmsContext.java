@@ -7,6 +7,7 @@ import com.intellij.psi.tree.IElementType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Where an identifier sits in a manifest, and therefore what it means.
@@ -137,48 +138,6 @@ public final class UmsContext {
     return index < 0 ? null : contextAt(tokens, index);
   }
 
-  /**
-   * The context of the name a value belongs to: the key a literal is assigned to, or the call or
-   * block whose parentheses hold it. Null for a token that is neither.
-   *
-   * <p>Value checks report on the value token, and an annotator may only mark the element it is
-   * visiting, so it reaches the name from here.
-   */
-  public static UmsContext ownerOf(PsiElement element) {
-    ASTNode node = element.getNode();
-    PsiFile file = element.getContainingFile();
-    if (node == null || file == null || !isValueToken(node.getElementType())) {
-      return null;
-    }
-    List<Token> tokens = tokensOf(file);
-    int index = indexOf(tokens, element.getTextRange().getStartOffset());
-    if (index < 0) {
-      return null;
-    }
-    Token before = at(tokens, index - 1);
-    Token owner = at(tokens, index - 2);
-    if (before != null && UmsTypes.EQUAL.equals(before.type)
-        && owner != null && UmsTypes.IDENTIFIER.equals(owner.type)) {
-      return contextAt(tokens, index - 2);
-    }
-    int depth = 0;
-    for (int i = index - 1; i >= 0; i--) {
-      IElementType type = tokens.get(i).type;
-      if (UmsTypes.RIGHT_PAREN.equals(type)) {
-        depth++;
-      } else if (UmsTypes.LEFT_PAREN.equals(type)) {
-        if (depth == 0) {
-          Token name = at(tokens, i - 1);
-          return name != null && UmsTypes.IDENTIFIER.equals(name.type) ? contextAt(tokens, i - 1) : null;
-        }
-        depth--;
-      } else if (UmsTypes.LEFT_BRACE.equals(type) || UmsTypes.RIGHT_BRACE.equals(type)) {
-        return null;
-      }
-    }
-    return null;
-  }
-
   private static UmsContext contextAt(List<Token> tokens, int index) {
     List<String> path = pathBefore(tokens, index);
     Role role = roleOf(tokens, index, path);
@@ -216,8 +175,43 @@ public final class UmsContext {
     return UmsTypes.LITERALS.contains(type) || UmsTypes.IDENTIFIER.equals(type);
   }
 
+  /** The text of a string literal token without its quotes and escapes; other tokens unchanged. */
+  private static @NotNull String unquote(@NotNull IElementType type, @NotNull String raw) {
+    if (!UmsTypes.STRING.equals(type) || raw.isEmpty() || raw.charAt(0) != '"') {
+      return raw;
+    }
+    StringBuilder text = new StringBuilder();
+    int end = raw.length();
+    if (end > 1 && raw.charAt(end - 1) == '"' && !endsInEscapedQuote(raw)) {
+      end--;
+    }
+    for (int i = 1; i < end; i++) {
+      char c = raw.charAt(i);
+      if (c == '\\' && i + 1 < end) {
+        char escaped = raw.charAt(++i);
+        text.append(switch (escaped) {
+          case 'n' -> '\n';
+          case 'r' -> '\r';
+          case 't' -> '\t';
+          default -> escaped;
+        });
+      } else {
+        text.append(c);
+      }
+    }
+    return text.toString();
+  }
+
+  private static boolean endsInEscapedQuote(String raw) {
+    int slashes = 0;
+    for (int i = raw.length() - 2; i >= 0 && raw.charAt(i) == '\\'; i--) {
+      slashes++;
+    }
+    return slashes % 2 == 1;
+  }
+
   private static Value valueOf(Token token) {
-    return new Value(token.type, UmsValueChecks.unquote(token.type, token.text),
+    return new Value(token.type, unquote(token.type, token.text),
         token.start, token.start + token.text.length());
   }
 

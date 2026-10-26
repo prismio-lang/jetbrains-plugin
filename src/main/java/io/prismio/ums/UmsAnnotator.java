@@ -4,13 +4,12 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
-import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Semantic colours and the one diagnostic a manifest editor can honestly give.
+ * Semantic colours for a manifest, and a weak warning for a name it does not recognise.
  *
  * <p>The lexer emits a plain identifier for every name in a manifest, because
  * UMS has no keywords. This decides which of them the manifest system actually
@@ -19,9 +18,10 @@ import org.jetbrains.annotations.NotNull;
  * place.
  *
  * <p>A value the compiler would refuse -- {@code runtime = "yes"}, a host outside
- * {@code .prismio/}, a {@code .cpp} native source -- is an error carrying the compiler's
- * own {@code UMS####} code; see {@link UmsValueChecks}. Checks that need the file system are
- * left to the compiler.
+ * {@code .prismio/}, a {@code .cpp} native source -- is not judged here: the language server
+ * publishes the compiler's own {@code UMS####} diagnostics for the manifest, which cannot drift from
+ * what the build accepts (this class once said a {@code .cpp} source was an error after the build
+ * began to take them).
  *
  * <p>An unrecognised name is a weak warning rather than an error. UMS parses
  * blocks before the semantic model learns them, so a manifest may legitimately
@@ -32,8 +32,6 @@ public final class UmsAnnotator implements Annotator {
 
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
-    annotateValue(element, holder);
-
     UmsContext context = UmsContext.of(element);
     if (context == null) {
       return;
@@ -59,24 +57,6 @@ public final class UmsAnnotator implements Annotator {
           .tooltip("`" + context.name + "` is not recognised " + where
               + (available.isEmpty() ? "" : ".<br/>Available: " + available))
           .create();
-    }
-  }
-
-  /**
-   * A value the compiler would refuse, marked on the value itself. Checked whether or not the
-   * name it belongs to is recognised: a value can be wrong under a name the manifest does know.
-   */
-  private static void annotateValue(PsiElement element, AnnotationHolder holder) {
-    UmsContext owner = UmsContext.ownerOf(element);
-    if (owner == null) {
-      return;
-    }
-    TextRange range = element.getTextRange();
-    for (UmsValueChecks.Problem problem : UmsValueChecks.problemsFor(owner)) {
-      if (problem.start() == range.getStartOffset() && problem.end() == range.getEndOffset()) {
-        holder.newAnnotation(HighlightSeverity.ERROR, "[" + problem.code() + "] " + problem.message())
-            .create();
-      }
     }
   }
 
