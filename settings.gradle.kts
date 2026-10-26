@@ -1,1 +1,1 @@
-rootProject.name = "PrismioPlugin"
+rootProject.name = "Prismio-Jetbrains"
