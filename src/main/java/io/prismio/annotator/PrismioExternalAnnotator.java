@@ -16,6 +16,7 @@ import com.intellij.psi.PsiFile;
 import io.prismio.imports.AddImportFix;
 import io.prismio.psi.PrismioFile;
 import io.prismio.symbols.StdlibIndex;
+import io.prismio.toolchain.PrismioProjectSettings;
 import io.prismio.toolchain.PrismioToolchainService;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -83,6 +84,11 @@ public final class PrismioExternalAnnotator
       return null;
     }
     Project project = file.getProject();
+    // The language server publishes the same diagnostics, with every unsaved buffer; two sets
+    // of them on one file would be drawn twice.
+    if (PrismioProjectSettings.getInstance(project).getState().useLanguageServer) {
+      return null;
+    }
     VirtualFile virtualFile = file.getVirtualFile();
     if (virtualFile == null || !virtualFile.isInLocalFileSystem()) {
       return null;

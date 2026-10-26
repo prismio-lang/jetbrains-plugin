@@ -75,6 +75,8 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.spellchecker</depends>
     <depends>com.intellij.modules.xdebugger</depends>
+    <!-- The platform's LSP client: `prismio lsp` (see io.prismio.lsp). Where it is absent the plugin works as it did. -->
+    <depends optional="true" config-file="prismio-lsp.xml">com.intellij.modules.lsp</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- File | New | Project | Prismio -->

@@ -24,6 +24,7 @@ dependencies {
     intellijIdea("2026.2.1")
     bundledModule("intellij.spellchecker")
     bundledModule("intellij.platform.debugger")
+    bundledModule("intellij.platform.lsp")
     testFramework(TestFrameworkType.Platform)
 
     pluginVerifier()
@@ -48,6 +49,10 @@ tasks.withType<Test>().configureEach {
   System.getProperty("prismio.compiler")?.let { systemProperty("prismio.compiler", it) }
   System.getProperty("prismio.expectChannel")?.let { systemProperty("prismio.expectChannel", it) }
   System.getProperty("prismio.dump")?.let { systemProperty("prismio.dump", it) }
+  // A compiler that is named `prismio` and runs inside a project hands the command to the project's own
+  // compiler, which may be any generation; the tests that compare against a given compiler mean that one.
+  System.getProperty("prismio.compiler")?.let { environment("PRISMIO_INTERNAL_HOSTED", "1") }
+  System.getProperty("prismio.differentialLimit")?.let { systemProperty("prismio.differentialLimit", it) }
 }
 
 tasks.withType<JavaCompile>().configureEach {

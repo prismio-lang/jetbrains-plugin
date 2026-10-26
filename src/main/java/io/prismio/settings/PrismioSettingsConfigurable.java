@@ -10,6 +10,7 @@ import com.intellij.util.ui.FormBuilder;
 import io.prismio.toolchain.PrismioProjectSettings;
 import io.prismio.toolchain.PrismioToolchainService;
 import java.nio.file.Path;
+import com.intellij.ui.components.JBCheckBox;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -21,6 +22,7 @@ public final class PrismioSettingsConfigurable implements SearchableConfigurable
 
   private final Project project;
   private TextFieldWithBrowseButton compilerPathField;
+  private JBCheckBox useServerBox;
   private JPanel mainPanel;
 
   public PrismioSettingsConfigurable(@NotNull Project project) {
@@ -60,10 +62,13 @@ public final class PrismioSettingsConfigurable implements SearchableConfigurable
       }
     });
 
+    useServerBox = new JBCheckBox("Use the Prismio language server (errors as you type, quick fixes and the features it provides; restart the IDE to apply)");
+
     mainPanel = FormBuilder.createFormBuilder()
         .addLabeledComponent("Compiler executable:", compilerPathField)
         .addComponent(autoDetectButton)
         .addComponent(detectStatus)
+        .addComponent(useServerBox)
         .addComponentFillVertically(new JPanel(), 0)
         .getPanel();
 
@@ -73,18 +78,21 @@ public final class PrismioSettingsConfigurable implements SearchableConfigurable
   @Override
   public boolean isModified() {
     PrismioProjectSettings.State state = PrismioProjectSettings.getInstance(project).getState();
-    return !compilerPathField.getText().trim().equals(state.compilerPath);
+    return !compilerPathField.getText().trim().equals(state.compilerPath)
+        || useServerBox.isSelected() != state.useLanguageServer;
   }
 
   @Override
   public void apply() {
     PrismioProjectSettings.State state = PrismioProjectSettings.getInstance(project).getState();
     state.compilerPath = compilerPathField.getText().trim();
+    state.useLanguageServer = useServerBox.isSelected();
   }
 
   @Override
   public void reset() {
     PrismioProjectSettings.State state = PrismioProjectSettings.getInstance(project).getState();
     compilerPathField.setText(state.compilerPath != null ? state.compilerPath : "");
+    useServerBox.setSelected(state.useLanguageServer);
   }
 }

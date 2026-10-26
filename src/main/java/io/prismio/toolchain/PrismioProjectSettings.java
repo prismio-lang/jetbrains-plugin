@@ -17,6 +17,8 @@ public final class PrismioProjectSettings implements PersistentStateComponent<Pr
   public static class State {
     public String compilerPath = "";
     public String stdlibPath = "";
+    /** Take diagnostics (and the features listed in io.prismio.lsp.PrismioLspFeatures) from `prismio lsp`. */
+    public boolean useLanguageServer = true;
   }
 
   private State state = new State();
