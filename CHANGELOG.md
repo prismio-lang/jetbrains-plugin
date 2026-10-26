@@ -9,6 +9,21 @@ names the compiler change it follows. The format follows
 
 ### Added
 
+- **The compiler's language server.** The plugin starts `prismio lsp` through the platform's LSP client
+  (`io.prismio.lsp`; loaded only where the platform has one) and takes diagnostics and the import quick fix from it,
+  for `.psm` sources and `build.ums` manifests. Errors now come from the program a file belongs to (manifest targets
+  tried in turn, a program that imports the module, the file alone) with every unsaved buffer, and a manifest gets the
+  compiler's own `UMS####` diagnostics. Setting: **Use the Prismio language server** (on by default). Which other
+  server features the editor uses is `PrismioLspFeatures.SERVED`; the platform client has a customizer for every one
+  the server advertises, so each moves over in the commit that deletes the Java that answered it.
+
+### Removed
+
+- **The external annotator and `PrismioCheckTarget`**, held to the server by a differential test on 344 files before
+  they went (same codes, lines and messages; the server says more only in type errors, because it checks with
+  `--partial`). **`UmsValueChecks`**: the compiler judges a manifest now; it had drifted (it rejected `.cpp` native
+  sources the build accepts). `UmsAnnotator` keeps the colours and the weak warning for an unknown name.
+
 - **Function markers and `const`** (compiler 0.2.0, `src/parse/modifiers.psm`). `hot`, `noinline`, `noreturn`,
   `const`, `inline(always)` and `inline(never)` highlight as contextual keywords and are offered by completion.
   `hot`, `const`, `noinline` and `noreturn` are keywords only before another word, so a variable called `hot` or
