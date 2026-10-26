@@ -115,11 +115,6 @@
                 language="Prismio"
                 implementationClass="io.prismio.annotator.PrismioAnnotator"/>
 
-        <!-- External Annotator for Real-Time Compiler Diagnostics -->
-        <externalAnnotator
-                language="Prismio"
-                implementationClass="io.prismio.annotator.PrismioExternalAnnotator"/>
-
         <!-- Code Completion -->
         <completion.contributor
                 language="Prismio"

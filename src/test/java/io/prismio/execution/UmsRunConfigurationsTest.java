@@ -65,7 +65,9 @@ public class UmsRunConfigurationsTest extends BasePlatformTestCase {
     }
     UmsManifest manifest = UmsManifest.read(Files.readString(Path.of(checkout, "build.ums")));
     assertEquals("prismio", manifest.projectName());
-    assertEquals("src/main.psm", manifest.targets().get(0).entry());
+    // The compiler and its language server are the two targets; either order is the manifest's own business.
+    assertContainsElements(manifest.targets().stream().map(UmsManifest.Target::entry).toList(),
+        "src/main.psm", "lsp/main.psm");
     assertContainsElements(manifest.commands().stream().map(UmsManifest.Command::name).toList(),
         "release", "suite", "bench", "lists", "verify", "gate");
   }

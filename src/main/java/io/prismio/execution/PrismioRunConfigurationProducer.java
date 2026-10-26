@@ -7,11 +7,14 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import io.prismio.annotator.PrismioCheckTarget;
 import io.prismio.psi.PrismioFile;
 import org.jetbrains.annotations.NotNull;
 
 public final class PrismioRunConfigurationProducer extends LazyRunConfigurationProducer<PrismioRunConfiguration> {
+
+  /** A program declares {@code fn main}; a module does not, and has nothing to run. */
+  private static final java.util.regex.Pattern DECLARES_MAIN =
+      java.util.regex.Pattern.compile("^\\s*(?:public\\s+)?fn\\s+main\\s*\\(", java.util.regex.Pattern.MULTILINE);
 
   @Override
   public @NotNull ConfigurationFactory getConfigurationFactory() {
@@ -37,7 +40,7 @@ public final class PrismioRunConfigurationProducer extends LazyRunConfigurationP
     }
     // Only a program runs: `prismio run` on a module with no `main` -- most files of a
     // multi-file program -- fails, and offering it on every file hid the one that works.
-    if (!PrismioCheckTarget.declaresMain(file.getText())) {
+    if (!DECLARES_MAIN.matcher(file.getText()).find()) {
       return false;
     }
 
