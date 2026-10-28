@@ -12,14 +12,6 @@ import io.prismio.execution.PrismioRunLineMarkerContributor;
 import java.util.List;
 
 public class PrismioAdvancedFeaturesTest extends BasePlatformTestCase {
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-    io.prismio.toolchain.PrismioProjectSettings.getInstance(getProject()).getState().stdlibPath =
-        io.prismio.lsp.PrismioServerCompletionTest.STDLIB;
-  }
-
-
   public void testDiagnosticParser() {
     String jsonOutput = """
         {"kind":"diagnostic","schemaVersion":1,"severity":"error","code":"P4001","file":"src/main.psm","line":12,"column":5,"length":4,"message":"unknown name `item`"}

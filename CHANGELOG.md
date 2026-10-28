@@ -5,7 +5,11 @@ hand-written and follow the compiler (`src/lexer`, `src/parse`), so an entry her
 names the compiler change it follows. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [0.2.0] (unreleased)
+
+The plugin is a client of `prismio lsp` now: the language's own knowledge lives in the compiler, and what stays here is
+what has to answer before a server can (colours, brackets, typing, indentation) and what is the IDE's own (run
+configurations, the project wizard, the manifest's colours).
 
 ### Added
 
@@ -18,6 +22,12 @@ names the compiler change it follows. The format follows
   The context tests cover declaration, reference and the undeclared and half-typed cases.
 
 ### Fixed
+
+- **`...`, a parameter pack's mark, lexed as a range and a dot.** The compiler scans one `ELLIPSIS` token; so does the
+  lexer now (found by `PrismioTokenTablesTest`). `Vec`, `Array`, `Future` and `Channel` colour as library types.
+- **Reformat Code with no server running could not be trusted to space.** The Java formatter changed 19 of 217 files
+  that `prismio fmt` had formatted. `PrismioBlock` indents and leaves the white space between tokens as written, and a
+  `-` that opens a match arm (`-5 => { }`) is a sign, not a continuation of the line above.
 
 - **`codeset` was not a keyword.** The plugin's word tables did not contain it, nor `typelist`, `workload`, `setup` or
   `measure`, which the compiler lists as contextual words (the compiler's `token_tables` test had them on a "plugin does not
@@ -60,11 +70,30 @@ names the compiler change it follows. The format follows
   builtins. The inline rendering of `/** */` comments stays the plugin's. **Setting the language server off, or changing the
   compiler path, now stops and restarts it at once** (a settings topic; before, nothing changed until the IDE restarted),
   and the server is started with `PRISMIO_INTERNAL_HOSTED` as VS Code does.
+- **Go to declaration, Find Usages, rename, Highlight Usages, Structure View and Go to Symbol come from the server.**
+  Go to declaration reaches the library (`xs.contains(` opens `vec.psm`, `import std.io` opens `io.psm`: the compiler
+  writes the source a `.plib` carries into the server's scratch directory) and resolves what the compiler resolves: a
+  function of the same name and parameter types in the file and in an import is `P4001`, and one of other parameter
+  types is an overload, so the plugin's "the current file wins" is gone with its resolver.
 - `PrismioServerEditorFeaturesTest`, `PrismioServerHoverTest`, `PrismioServerCompletionTest` (the plugin's 35 completion
-  tests, answered by the server) and `PrismioServerNavigationTest` (4 of 7 pass; see docs/LSP_PLAN.md in the compiler
-  repository). They need a toolchain with the compiler repository's 01ed914 or later.
+  tests, answered by the server) and `PrismioServerNavigationTest` (eleven tests: definitions, the library, an
+  overload, usages, rename, the outline, Go to Symbol, highlights). They need a toolchain with the compiler
+  repository's `34ff439` or later.
+- **`PrismioTokenTablesTest`** compares the lexer's keywords, contextual words and built-in types with
+  `prismio dump-tokens` and lexes every operator and separator it lists. `PrismioFormatterDifferentialTest` formats
+  files with `prismio fmt` and gives the result to the plugin's formatter, which now has nothing to change in 217 of 217.
 
 ### Removed
+
+- **`navigation/`** (the scope resolver, name references, the goto handler, Find Usages, rename, structure view, Go to
+  Symbol, `DeclarationScanner`: 1,400 lines), the identifier element that carried references, **`symbols/`** (the
+  declaration reader, the standard-library index, `TypeInference`, `CompilerIntrinsics`: 3,500 lines) and **`imports/`**,
+  with `getStdlibDirectory`, the `stdlibPath` setting (a project that had it set loses it silently, and nothing read it),
+  the test copy of the standard library and the freestanding-builtin table. A differential over the checkout's tests held
+  the server to the resolver before it went: of 3,961 names the plugin resolved, the server agreed on 3,941, and the 20
+  others were the plugin's mistakes (a field label taken for a variable, an `import` segment taken for a declaration, a
+  bound `T: Eq` taken for an `impl`, a rebinding taken for the binding it replaces). The differential is in Git history
+  (`1fa3bc2`). A hyphenated import (`import stack-placement`) was a plugin test and is not a thing the compiler accepts.
 
 - **`PrismioDocumentationProvider`, `PrismioTypeHintsProvider`, `PrismioParameterInfoHandler`, `completion/` and
   `UmsCompletionContributor`**, each after a differential or test held the server to what it answered: 1,219 hover names

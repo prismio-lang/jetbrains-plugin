@@ -18,7 +18,6 @@ import java.util.List;
  */
 public class PrismioServerCompletionTest extends BasePlatformTestCase {
 
-  public static final String STDLIB = Path.of("src/test/testData/stdlib").toAbsolutePath().toString();
 
   @Override
   protected void setUp() throws Exception {

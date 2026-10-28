@@ -7,7 +7,7 @@
 **JetBrains IDE support for the [Prismio](https://prismio.org) programming language.**
 
 [![JetBrains Plugin](https://img.shields.io/badge/JetBrains-Plugin-orange?logo=jetbrains&logoColor=white)](https://plugins.jetbrains.com/)
-[![Version](https://img.shields.io/badge/version-0.1.0-blue)](https://github.com/prismio-lang/jetbrains-plugin/releases)
+[![Version](https://img.shields.io/badge/version-0.2.0-blue)](https://github.com/prismio-lang/jetbrains-plugin/releases)
 [![License](https://img.shields.io/badge/license-Apache%202.0-green)](LICENSE)
 [![IntelliJ](https://img.shields.io/badge/IntelliJ%20IDEA-2026.2%2B-blueviolet?logo=intellij-idea)](https://www.jetbrains.com/idea/)
 
@@ -19,7 +19,9 @@ Edit, check and run Prismio projects in IntelliJ IDEA, CLion, and the other
 JetBrains IDEs. The plugin covers `.psm` source files and `build.ums` project
 files.
 
-This is the first release, 0.1.0.
+Everything that needs to understand the language (errors, completion, hover, hints, navigation, rename, imports,
+formatting) is answered by the compiler itself, through its language server, `prismio lsp`: the plugin carries no copy
+of the language, so it follows the compiler you pick. It needs a toolchain that includes `prismio-lsp`.
 
 ## What you get
 
@@ -74,9 +76,11 @@ This is the first release, 0.1.0.
 The plugin uses the `prismio` compiler on your PATH. To use a different one,
 set it in **Settings | Languages & Frameworks | Prismio**.
 
-Completion and error checking come from the compiler you pick. The plugin reads
-that toolchain's standard library rather than keeping its own list, so a newer
-or older compiler shows its own functions and methods.
+Completion, error checking, hover, navigation and formatting come from the
+compiler you pick, through its language server, so a newer or older compiler
+shows its own functions and methods and its own errors. **Settings | Languages &
+Frameworks | Prismio | Use the Prismio language server** turns the server off;
+the plugin then keeps highlighting, folding, typing and running.
 
 ## Compatibility
 

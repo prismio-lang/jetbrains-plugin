@@ -1,8 +1,0 @@
-// Display -- how a value reads as text.
-
-trait Display {
-    fn show(self) -> String
-}
-
-impl Display for Int    { fn show(self) -> String { return strFromInt(self) } }
-impl Display for String { fn show(self) -> String { return strClone(self) } }

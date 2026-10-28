@@ -208,89 +208,8 @@ public final class PrismioToolchainService {
     return (path.isAbsolute() ? path : projectRoot.resolve(path)).normalize();
   }
 
-  /**
-   * Finds the Prismio standard library directory: a checkout's `std/` of `.psm`
-   * sources, or an installed toolchain's `stdlib/` of `.plib` files.
-   */
-  public @Nullable Path getStdlibDirectory() {
-    PrismioProjectSettings.State settings = PrismioProjectSettings.getInstance(project).getState();
-    if (settings.stdlibPath != null && !settings.stdlibPath.isBlank()) {
-      Path configured = Path.of(settings.stdlibPath);
-      if (isValidStdlib(configured)) {
-        return configured;
-      }
-    }
-
-    // 1. Relative to compiler executable if available. Through any symlink: a package
-    // manager links bin/prismio from a directory of its own, and the library is there.
-    Path compiler = getCompilerExecutable();
-    if (compiler != null) {
-      try {
-        compiler = compiler.toRealPath();
-      } catch (java.io.IOException ignored) {
-        // Use the path as found.
-      }
-      // Check if compiler is inside a repo build dir: <root>/.prismio/build/debug/prismio -> <root>/std
-      Path parent4 = compiler.getParent();
-      for (int i = 0; i < 3 && parent4 != null; i++) {
-        parent4 = parent4.getParent();
-      }
-      if (parent4 != null) {
-        Path repoStd = parent4.resolve("std");
-        if (isValidStdlib(repoStd)) {
-          return repoStd;
-        }
-      }
-
-      // An installed toolchain: <root>/bin/prismio beside <root>/stdlib/*.plib
-      // (tools/package.py). Then <binDir>/../lib/prismio/std or <binDir>/../std.
-      Path binDir = compiler.getParent();
-      if (binDir != null) {
-        Path installed = binDir.resolve("../stdlib").normalize();
-        if (isValidStdlib(installed)) {
-          return installed;
-        }
-        Path libStd = binDir.resolve("../lib/prismio/std").normalize();
-        if (isValidStdlib(libStd)) {
-          return libStd;
-        }
-        Path peerStd = binDir.resolve("../std").normalize();
-        if (isValidStdlib(peerStd)) {
-          return peerStd;
-        }
-      }
-    }
-
-    // 2. In project root
-    String basePath = project.getBasePath();
-    if (basePath != null) {
-      Path projectStd = Path.of(basePath, "std");
-      if (isValidStdlib(projectStd)) {
-        return projectStd;
-      }
-    }
-
-    // 3. System install locations
-    List<Path> systemLocations = List.of(
-        Path.of("/usr/local/lib/prismio/std"),
-        Path.of("/opt/prismio/std"),
-        Path.of(System.getProperty("user.home", ""), ".prismio/std")
-    );
-    for (Path candidate : systemLocations) {
-      if (isValidStdlib(candidate)) {
-        return candidate;
-      }
-    }
-
-    return null;
-  }
-
   private static boolean isValidExecutable(@NotNull Path path) {
     return Files.isRegularFile(path) && Files.isExecutable(path);
   }
 
-  private static boolean isValidStdlib(@NotNull Path path) {
-    return Files.isDirectory(path)
-        && (Files.isRegularFile(path.resolve("io.psm")) || Files.isRegularFile(path.resolve("io.plib")));
-  }
 }

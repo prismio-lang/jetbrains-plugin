@@ -41,19 +41,19 @@ Everything is under `src/main/java/io/prismio/`.
 
 | Package | What it does |
 |---|---|
-| `lexer`, `lang` | The Prismio lexer and its word tables |
-| `psi`, `parser` | A flat token tree; identifiers get their own element so they can carry references |
-| `symbols` | Reads declarations from source, indexes the toolchain's standard library, infers types |
-| `completion` | Completion, keywords and parameter info |
-| `imports` | Finding and adding imports, and the "Import std.x" quick fix |
-| `hints` | Inline type hints for `let` |
-| `annotator` | Highlighting of names, and compiler errors as you type |
-| `navigation` | Go to declaration, find usages, rename, structure view |
+| `lsp` | The platform's client of `prismio lsp`, and `PrismioLspFeatures`, which says which server features the editor uses |
+| `lexer`, `lang` | The Prismio lexer and its word tables, held to `prismio dump-tokens` by a test |
+| `psi`, `parser` | A flat token tree |
+| `annotator` | Highlighting of names (compiler errors come from the server) |
 | `execution` | Run configurations, including the ones made from `build.ums` |
-| `formatter`, `folding`, `editor`, `handler` | Formatting and typing behaviour |
+| `formatter`, `folding`, `editor`, `handler` | Indentation and typing behaviour (spacing is `prismio fmt`'s, through the server) |
 | `toolchain`, `settings` | Finding the compiler, and the settings pages |
-| `ums` | The `build.ums` language, from lexer to run targets |
-| `highlighter`, `documentation`, `spellcheck`, `template`, `debugger` | Colours, Ctrl+Q docs, spellchecking, New File actions, line breakpoints |
+| `ums` | The `build.ums` language: lexer, colours, run targets (its diagnostics and completion come from the server) |
+| `highlighter`, `documentation`, `spellcheck`, `template`, `debugger` | Colours, the inline rendering of `/** */`, spellchecking, New File actions, line breakpoints |
+
+Hover, completion, parameter info, inlay hints, definitions, usages, rename, the outline, Go to Symbol, the import quick fix
+and compiler errors are **not** in this plugin: they are the compiler's, served by `prismio lsp` (see
+`docs/LSP_PLAN.md` in the compiler repository). To change what one of them answers, change the compiler.
 
 `src/main/resources/META-INF/plugin.xml` registers all of it.
 
@@ -66,19 +66,16 @@ compiler file they follow:
 | Plugin file | Follows, in the compiler |
 |---|---|
 | `lexer/PrismioLexer.java` | `src/lexer/scanner.psm` |
-| `lang/PrismioWords.java` | `src/lexer/token.psm`, `src/ast/types.psm`, `src/parse/decl.psm` |
+| `lang/PrismioWords.java` | `prismio dump-tokens` (`PrismioTokenTablesTest` fails when they differ) |
 | `ums/UmsLexer.java` | `ums/parser/lexer.psm` |
 | `ums/UmsWords.java` | `ums/model/lowering.psm` |
-| `symbols/CompilerIntrinsics.java` | `src/sema/vec.psm`, `src/sema/channel.psm` |
 
 When the language changes, the compiler changes first and these files follow.
 
-**Don't write the standard library into the plugin.** Functions, types, methods
-and modules come from the toolchain the user has configured, read by
-`symbols/StdlibIndex`. That way a different compiler version brings its own
-library. The only members listed by hand are the few the compiler builds in
-(`CompilerIntrinsics`), and those are checked against the configured compiler
-before they are shown.
+**Don't write the language into the plugin.** Functions, types, methods, modules, signatures and names in scope come
+from the compiler through the language server. The plugin once had its own reader of the standard library and its own
+type inference; they disagreed with the compiler on one name in two hundred and were deleted. What the lexer needs
+before a server answers (the word tables) is checked against `prismio dump-tokens`.
 
 **The lexers are written by hand, on purpose.** Words like `private`, `dyn` and
 `pin` are keywords in one position and ordinary names everywhere else, which a
@@ -86,10 +83,8 @@ generated lexer cannot express. There is no JFlex or Grammar-Kit step. Before
 changing a lexer, add a case to `PrismioLexerTest` or `UmsLexerTest` that shows
 the new behaviour.
 
-**Formatting must not change code.** A formatter rule is easy to get subtly
-wrong: one rule once turned `a and b` into `aand b`. After changing the
-formatter, run the checkout tests below, which reformat every file in the
-compiler repository.
+**Spacing is the compiler's.** Reformat Code runs `prismio fmt` through the server. `PrismioBlock` only indents, and
+`PrismioFormatterDifferentialTest` holds it to leaving formatted text alone.
 
 ## Testing
 
@@ -104,13 +99,10 @@ checkout and a compiler binary to run them too:
 ./gradlew test -Dprismio.checkout=/path/to/prismio -Dprismio.compiler=/path/to/prismio/binary
 ```
 
-Those tests lex, parse and reformat every file in the checkout, check every
-file through the compiler, and index both a checkout's `std/` and an installed
-toolchain's `stdlib/`.
-
-Completion tests use a small standard library in `src/test/testData/stdlib`,
-so they don't depend on whichever compiler is installed. When the standard
-library's syntax changes, update those files to match.
+Those tests lex every file in the checkout, compare the plugin's word tables and formatter with the compiler's, and ask
+the server (the compiler repository's `prismio lsp`) for hover, hints, parameter info, completion and definitions over
+the checkout's tests. The compiler must not be named `prismio` (a launcher forwards by that name); give the path of a
+packaged toolchain's `bin/<other name>`, or a debug build copied to one, and set `PRISMIO_INTERNAL_HOSTED=1`.
 
 ## Pull requests
 

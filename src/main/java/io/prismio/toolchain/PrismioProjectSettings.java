@@ -8,7 +8,7 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Persistent project-level settings for Prismio (toolchain path, stdlib path).
+ * Persistent project-level settings for Prismio (the toolchain path).
  */
 @Service(Service.Level.PROJECT)
 @State(name = "PrismioProjectSettings", storages = @Storage("prismio.xml"))
@@ -16,7 +16,6 @@ public final class PrismioProjectSettings implements PersistentStateComponent<Pr
 
   public static class State {
     public String compilerPath = "";
-    public String stdlibPath = "";
     /** Take diagnostics (and the features listed in io.prismio.lsp.PrismioLspFeatures) from `prismio lsp`. */
     public boolean useLanguageServer = true;
   }

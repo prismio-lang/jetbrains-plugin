@@ -59,6 +59,13 @@
     ]]></description>
 
     <change-notes><![CDATA[
+        <h3>0.2.0</h3>
+        <ul>
+            <li>Errors, completion, hover, parameter and type hints, go to declaration (also into the standard library),
+                find usages, rename, structure view, Go to Symbol and imports come from the compiler's language server</li>
+            <li>Reformat Code uses <code>prismio fmt</code>, the same rules as the command line</li>
+            <li><code>...</code> is one token; the lexer's word tables are checked against the compiler's</li>
+        </ul>
         <h3>0.1.0</h3>
         <p>First release.</p>
         <ul>
