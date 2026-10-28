@@ -60,6 +60,53 @@ public class PrismioCodeInsightTest extends BasePlatformTestCase {
     myFixture.checkResult("fn main() {\n    /**\n       <caret>\n    */\n}");
   }
 
+  /** The document as it is, with the caret marked, so a failure shows both texts. */
+  private String textWithCaret() {
+    String text = myFixture.getEditor().getDocument().getText();
+    int caret = myFixture.getCaretOffset();
+    return text.substring(0, caret) + "<caret>" + text.substring(caret);
+  }
+
+  /**
+   * Enter between `{` and the code after it on the same line moves that code to the next line, one
+   * level in. IntelliJ has already indented the new line when the handler runs, so the handler must
+   * set the indent and not add to it: it used to insert a second copy, and the code landed twice as
+   * far in as it should (`pressing Enter at `{ p`` put `p` 16 columns in instead of 8).
+   */
+  public void testEnterAfterAnOpeningBraceMidLineIndentsOneLevel() {
+    myFixture.configureByText(PrismioFileType.INSTANCE,
+        "fn main() {\n    if (value == none) { <caret>emit(fd) } else { other(fd) }\n}");
+
+    myFixture.type('\n');
+
+    assertEquals(
+        "fn main() {\n    if (value == none) {\n        <caret>emit(fd) } else { other(fd) }\n}", textWithCaret());
+  }
+
+  public void testEnterAfterAnOpeningBraceMidLineAtTheLeftEdge() {
+    myFixture.configureByText(PrismioFileType.INSTANCE, "if (value == none) { <caret>emit(fd) }");
+
+    myFixture.type('\n');
+
+    assertEquals("if (value == none) {\n    <caret>emit(fd) }", textWithCaret());
+  }
+
+  public void testEnterAtTheEndOfAnOpeningBraceLineIndentsOneLevel() {
+    myFixture.configureByText(PrismioFileType.INSTANCE, "fn main() {\n    if (a) {<caret>\n    }\n}");
+
+    myFixture.type('\n');
+
+    assertEquals("fn main() {\n    if (a) {\n        <caret>\n    }\n}", textWithCaret());
+  }
+
+  public void testPlainEnterKeepsTheIndentOnceNotTwice() {
+    myFixture.configureByText(PrismioFileType.INSTANCE, "fn main() {\n    let x = 1<caret>\n}");
+
+    myFixture.type('\n');
+
+    assertEquals("fn main() {\n    let x = 1\n    <caret>\n}", textWithCaret());
+  }
+
   public void testBlockCommentIndentationIsRelativeToOpeningLine() {
     myFixture.configureByText(PrismioFileType.INSTANCE, "fn main() {\n    /*<caret>*/\n}");
 

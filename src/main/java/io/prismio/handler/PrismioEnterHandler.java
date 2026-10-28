@@ -97,9 +97,12 @@ public class PrismioEnterHandler extends EnterHandlerDelegateAdapter {
           return Result.Stop;
         }
       } else {
-        // Just add indentation to current line
-        document.insertString(currentLineStart, newIndent);
-        editor.getCaretModel().moveToOffset(currentLineStart + newIndent.length());
+        // The line already has the indentation the platform gave it, so the new level
+        // replaces that and is not added to it. Inserting here put the code twice as far
+        // in as it belongs when Enter was pressed after `{` with code still after the caret.
+        setIndentation(document, currentLineStart, currentLine, newIndent);
+        int trimmed = trimTrailingWhitespace(document, prevLineStart, prevLineEnd);
+        editor.getCaretModel().moveToOffset(currentLineStart - trimmed + newIndent.length());
         return Result.Stop;
       }
     }
@@ -130,7 +133,7 @@ public class PrismioEnterHandler extends EnterHandlerDelegateAdapter {
 
     // Maintain current indentation for other cases
     if (!prevIndent.isEmpty()) {
-      document.insertString(currentLineStart, prevIndent);
+      setIndentation(document, currentLineStart, currentLine, prevIndent);
       editor.getCaretModel().moveToOffset(currentLineStart + prevIndent.length());
       return Result.Default;
     }
@@ -156,6 +159,29 @@ public class PrismioEnterHandler extends EnterHandlerDelegateAdapter {
       lexer.advance();
     }
     return null;
+  }
+
+  /** Makes `indent` the whole of the line's leading whitespace, whatever is there already. */
+  private static void setIndentation(
+      @NotNull Document document, int lineStart, @NotNull String line, @NotNull String indent) {
+    int existing = leadingWhitespaceLength(line);
+    if (line.substring(0, existing).equals(indent)) {
+      return;
+    }
+    document.replaceString(lineStart, lineStart + existing, indent);
+  }
+
+  /** Removes the spaces a line ends with, and says how many there were: `{ ` + Enter leaves `{`. */
+  private static int trimTrailingWhitespace(@NotNull Document document, int lineStart, int lineEnd) {
+    CharSequence text = document.getCharsSequence();
+    int end = lineEnd;
+    while (end > lineStart && (text.charAt(end - 1) == ' ' || text.charAt(end - 1) == '\t')) {
+      end--;
+    }
+    if (end < lineEnd) {
+      document.deleteString(end, lineEnd);
+    }
+    return lineEnd - end;
   }
 
   private static int leadingWhitespaceLength(@NotNull String line) {

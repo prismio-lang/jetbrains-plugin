@@ -87,11 +87,16 @@ import org.jetbrains.annotations.NotNull;
  * one. So a feature is added to {@link #SERVED} in the commit that deletes the Java that used to answer it,
  * and every other one is switched off. The server advertises more than {@code SERVED} lists; that is the
  * work still to do, not a limit of the server.
+ *
+ * <p>{@code formatting} is the one exception to deleting the Java: Reformat Code and range formatting go
+ * to the compiler's own formatter (`prismio fmt`, the same rules as the command line and every other
+ * editor), but {@code formatter/PrismioBlock} stays. It still answers what a server cannot, the indent of
+ * the line you are typing on, and it formats when the server is off or no compiler is found.
  */
 final class PrismioLspFeatures {
 
   /** The features the server answers, by the platform's name for them. */
-  static final Set<String> SERVED = Set.of("diagnostics", "codeActions", "hover", "inlayHint", "signatureHelp", "completion");
+  static final Set<String> SERVED = Set.of("diagnostics", "codeActions", "hover", "inlayHint", "signatureHelp", "completion", "formatting");
 
   private PrismioLspFeatures() {}
 

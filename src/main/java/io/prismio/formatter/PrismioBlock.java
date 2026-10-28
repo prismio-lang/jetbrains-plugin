@@ -34,6 +34,7 @@ final class PrismioBlock extends AbstractBlock {
   /** The column a token that begins its line is indented to. */
   private final int indentLevel;
   private @Nullable Set<Integer> typeArgumentAngles;
+  private @Nullable Set<Integer> branchLineBreaks;
 
   public PrismioBlock(@NotNull ASTNode node, @Nullable Wrap wrap, @Nullable Alignment alignment,
       CodeStyleSettings settings) {
@@ -261,7 +262,113 @@ final class PrismioBlock extends AbstractBlock {
         || type == PrismioTypes.LBRACKET || type == PrismioTypes.RBRACKET) {
       return true;
     }
+    // `Ptr<mut T>`: `mut` is a keyword, and refusing it spaced the list apart as `Ptr < mut T >`.
+    if (type == PrismioTypes.KEYWORD && "mut".equals(node.getText())) {
+      return true;
+    }
     return type == PrismioTypes.ARITHMETIC_OP && "+".equals(node.getText());
+  }
+
+  /**
+   * Where an `if` that has an `else` must start a new line: before the first token inside each of
+   * its branches and before each branch's closing brace. {@code if (a) { b() } else { c() }} is
+   * written on several lines, one branch to a block; an `if` with no `else` is not touched and stays
+   * wherever its author put it. An empty branch stays `{ }`.
+   *
+   * <p>The PSI tree is flat, so a chain is found the way the compiler's parser finds it: `if`, a
+   * parenthesised condition, a braced block, then `else` followed by another `if` or a block.
+   * Anything that does not fit that shape is left alone.
+   */
+  private static Set<Integer> branchLineBreaks(ASTNode fileNode) {
+    List<ASTNode> tokens = new ArrayList<>();
+    for (ASTNode child : fileNode.getChildren(null)) {
+      IElementType type = child.getElementType();
+      if (type != TokenType.WHITE_SPACE && !PrismioTokenSets.COMMENTS.contains(type)) {
+        tokens.add(child);
+      }
+    }
+
+    Set<Integer> breaks = new HashSet<>();
+    for (int i = 0; i < tokens.size(); i++) {
+      if (!isWord(tokens.get(i), "if")) {
+        continue;
+      }
+      List<int[]> branches = new ArrayList<>();
+      boolean hasElse = false;
+      int at = i;
+      while (true) {
+        int open = blockAfterCondition(tokens, at + 1);
+        int close = open < 0 ? -1 : closingBrace(tokens, open);
+        if (close < 0) {
+          break;
+        }
+        branches.add(new int[] {open, close});
+        int next = close + 1;
+        if (next >= tokens.size() || !isWord(tokens.get(next), "else")) {
+          break;
+        }
+        hasElse = true;
+        next++;
+        if (next < tokens.size() && isWord(tokens.get(next), "if")) {
+          at = next;
+          continue;
+        }
+        if (next < tokens.size() && tokens.get(next).getElementType() == PrismioTypes.LBRACE) {
+          int elseClose = closingBrace(tokens, next);
+          if (elseClose > 0) {
+            branches.add(new int[] {next, elseClose});
+          }
+        }
+        break;
+      }
+      if (!hasElse) {
+        continue;
+      }
+      for (int[] branch : branches) {
+        if (branch[1] > branch[0] + 1) {
+          breaks.add(tokens.get(branch[0] + 1).getStartOffset());
+          breaks.add(tokens.get(branch[1]).getStartOffset());
+        }
+      }
+    }
+    return breaks;
+  }
+
+  private static boolean isWord(ASTNode token, String word) {
+    return token.getElementType() == PrismioTypes.KEYWORD && word.equals(token.getText());
+  }
+
+  /** The index of the `{` after the parenthesised condition that starts at {@code from}, or -1. */
+  private static int blockAfterCondition(List<ASTNode> tokens, int from) {
+    if (from >= tokens.size() || tokens.get(from).getElementType() != PrismioTypes.LPAREN) {
+      return -1;
+    }
+    int depth = 0;
+    for (int i = from; i < tokens.size(); i++) {
+      IElementType type = tokens.get(i).getElementType();
+      if (type == PrismioTypes.LPAREN) {
+        depth++;
+      } else if (type == PrismioTypes.RPAREN && --depth == 0) {
+        boolean opens = i + 1 < tokens.size()
+            && tokens.get(i + 1).getElementType() == PrismioTypes.LBRACE;
+        return opens ? i + 1 : -1;
+      }
+    }
+    return -1;
+  }
+
+  /** The index of the `}` that closes the `{` at {@code open}, or -1. */
+  private static int closingBrace(List<ASTNode> tokens, int open) {
+    int depth = 0;
+    for (int i = open; i < tokens.size(); i++) {
+      IElementType type = tokens.get(i).getElementType();
+      if (type == PrismioTypes.LBRACE) {
+        depth++;
+      } else if (type == PrismioTypes.RBRACE && --depth == 0) {
+        return i;
+      }
+    }
+    return -1;
   }
 
   /** What a line may end with and still not end its statement: `a +`, `x.`, `cond and`. */
@@ -380,6 +487,14 @@ final class PrismioBlock extends AbstractBlock {
     return typeArgumentAngles;
   }
 
+  /** Computed once per file, like the angle brackets: the scan is over the whole token list. */
+  private Set<Integer> branchLineBreaks() {
+    if (branchLineBreaks == null) {
+      branchLineBreaks = branchLineBreaks(myNode);
+    }
+    return branchLineBreaks;
+  }
+
   private static boolean isOpeningAngle(@Nullable Block block) {
     return block instanceof PrismioBlock prismio && isAngleOpen(prismio.myNode);
   }
@@ -392,6 +507,10 @@ final class PrismioBlock extends AbstractBlock {
   @Nullable
   @Override
   public Spacing getSpacing(@Nullable Block child1, @NotNull Block child2) {
+    // The branches of an `if` that has an `else` each start on a line of their own.
+    if (child2 instanceof PrismioBlock next && branchLineBreaks().contains(next.myNode.getStartOffset())) {
+      return Spacing.createSpacing(0, 0, 1, true, 1);
+    }
     // `List<Int>` closes up; `a < b` keeps its air. Checked before the builder,
     // because to it both are the same relational-operator token.
     //

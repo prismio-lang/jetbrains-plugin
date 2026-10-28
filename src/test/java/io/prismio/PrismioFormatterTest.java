@@ -236,4 +236,89 @@ public class PrismioFormatterTest extends BasePlatformTestCase {
         }
         """);
   }
+
+  /** `Ptr<mut T>` is a type argument list, though `mut` is a keyword: it must not become `Ptr < mut T >`. */
+  public void testAKeywordInsideTypeArgumentsStillClosesUp() {
+    assertEquals("fn at(p: Ptr<mut T>) { }", reformat("fn at(p: Ptr<mut T>) { }"));
+    assertEquals("let one = Ptr<mut T>.atUnchecked(4096)", reformat("let one = Ptr<mut T>.atUnchecked(4096)"));
+    assertEquals("fn f<T>(block: Ptr<mut T>, count: Int) -> Ptr<mut T> { }",
+        reformat("fn f<T>(block: Ptr<mut T>, count: Int) -> Ptr<mut T> { }"));
+  }
+
+  /** An `if` with an `else` is written on several lines; one with none may stay on one. */
+  public void testIfWithElseIsSplitOverLines() {
+    assertEquals("""
+        fn f() {
+            if (a) {
+                b()
+            } else {
+                c()
+            }
+        }""", reformat("fn f() {\n    if (a) { b() } else { c() }\n}"));
+  }
+
+  /** The line from `std/io.psm` that was reported: one-line if/else with calls in both branches. */
+  public void testTheReportedOneLineIfElse() {
+    assertEquals("""
+        fn emit() {
+            if (value == none) {
+                prismioStdIoEmitNone(fd, terminator)
+            } else {
+                prismioStdIoEmit(fd, expect(value), terminator)
+            }
+        }""", reformat("fn emit() {\n    if (value == none) { prismioStdIoEmitNone(fd, terminator) } else { prismioStdIoEmit(fd, expect(value), terminator) }\n}"));
+  }
+
+  public void testEveryBranchOfAnElseIfChainIsSplit() {
+    assertEquals("""
+        fn f() {
+            if (a) {
+                b()
+            } else if (c) {
+                d()
+            } else {
+                e()
+            }
+        }""", reformat("fn f() {\n    if (a) { b() } else if (c) { d() } else { e() }\n}"));
+    // Ending on an `else if` is still a chain with an else.
+    assertEquals("""
+        fn f() {
+            if (a) {
+                b()
+            } else if (c) {
+                d()
+            }
+        }""", reformat("fn f() {\n    if (a) { b() } else if (c) { d() }\n}"));
+  }
+
+  public void testALoneIfKeepsItsLines() {
+    assertEquals("fn f() {\n    if (a) { b() }\n}", reformat("fn f() {\n    if (a) { b() }\n}"));
+    assertEquals("fn f() {\n    if (a) {\n        b()\n    }\n}",
+        reformat("fn f() {\n    if (a) {\n        b()\n    }\n}"));
+  }
+
+  public void testEmptyBranchesStayClosed() {
+    assertEquals("fn f() {\n    if (a) {\n        b()\n    } else { }\n}",
+        reformat("fn f() {\n    if (a) { b() } else { }\n}"));
+  }
+
+  public void testSplitIfElseIsIdempotentAndKeepsItsTokens() {
+    String source = "fn f() {\n    if (a) { b() } else { if (c) { d() } else { e() } }\n}";
+    assertTokensPreserved(source);
+    String once = reformat(source);
+    assertEquals(once, reformat(once));
+  }
+
+  public void testIfElseSplitInsideANestedBlockIndentsFromItsOwnLevel() {
+    assertEquals("""
+        fn f() {
+            for i in 0..3 {
+                if (a) {
+                    b()
+                } else {
+                    c()
+                }
+            }
+        }""", reformat("fn f() {\n    for i in 0..3 {\n        if (a) { b() } else { c() }\n    }\n}"));
+  }
 }

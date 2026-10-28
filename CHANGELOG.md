@@ -7,7 +7,25 @@ names the compiler change it follows. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- **Enter after `{` with code still on the line put that code twice as far in as it belongs.** Pressing Enter at
+  `if (a) { <caret>b() }` left IntelliJ's own indent on the new line and the handler inserted a second one, so `b()`
+  landed in column 8 with the caret left behind in column 4 (16 and 8 inside a function). `PrismioEnterHandler` sets the
+  line's indent now and does not add to it, and the line above loses the space it ended with.
+- **Reformatting turned `Ptr<mut T>` into `Ptr < mut T >`.** `mut` is a keyword, and the scan that tells a type-argument
+  list from a comparison only accepted names, so it read the `<` as an operator.
+
 ### Added
+
+- **Reformat Code and range formatting come from the server.** `formatting` is in `PrismioLspFeatures.SERVED`, so the IDE
+  formats with `prismio fmt` (about 9 ms for a 6,000-line file), the same rules as the command line and every other
+  editor. `PrismioBlock` stays: it gives the indent of the line being typed, which a server cannot, and formats when the
+  server is off or no compiler is found.
+
+- **An `if` that has an `else` is formatted over several lines.** Reformat Code puts each branch of
+  `if (a) { b() } else { c() }`, and of an `else if` chain, on lines of their own (`} else {` stays together); an empty
+  branch stays `{ }`, and an `if` with no `else` is left as written, on one line or several. `PrismioBlock`.
 
 - **The compiler's language server.** The plugin starts `prismio lsp` through the platform's LSP client
   (`io.prismio.lsp`; loaded only where the platform has one) and takes diagnostics and the import quick fix from it,
