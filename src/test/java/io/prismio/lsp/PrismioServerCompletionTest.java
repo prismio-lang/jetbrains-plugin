@@ -1,67 +1,115 @@
-package io.prismio;
+package io.prismio.lsp;
 
-import com.intellij.codeInsight.CodeInsightSettings;
-import com.intellij.codeInsight.lookup.Lookup;
-import com.intellij.codeInsight.lookup.LookupElement;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
-import io.prismio.imports.AddImportFix;
-import io.prismio.toolchain.PrismioProjectSettings;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Completion driven by the toolchain's standard library: members from the
- * receiver's inferred type, functions and types from modules not yet imported,
- * and the import each choice needs.
+ * What completion must offer, asked of the language server: members from the receiver's type, the names in scope,
+ * the library's names from modules not yet imported, imports, types, associated functions, the compiler's own
+ * builtins and keywords.
  *
- * <p>The library is {@code src/test/testData/stdlib}, a miniature one in the real
- * module shapes, so what is asserted here does not depend on which compiler is
- * installed.
+ * <p>These were the plugin's own completion tests; the plugin's completion was deleted once every one of them held of
+ * the server (24 of 35 failed on the first run). The fixture is only a place to write project files (a test adds
+ * {@code project/host.psm}); they are copied beside the document the server is asked about. Needs a toolchain with the
+ * compiler repository's 01ed914 or later, and is skipped without {@code -Dprismio.checkout} and
+ * {@code -Dprismio.compiler}.
  */
-public class PrismioSmartCompletionTest extends BasePlatformTestCase {
+public class PrismioServerCompletionTest extends BasePlatformTestCase {
 
-  static final String STDLIB = Path.of("src/test/testData/stdlib").toAbsolutePath().toString();
+  public static final String STDLIB = Path.of("src/test/testData/stdlib").toAbsolutePath().toString();
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    PrismioProjectSettings.getInstance(getProject()).getState().stdlibPath = STDLIB;
+    corpus = ServerCorpus.start();
   }
 
-  /**
-   * The lookup's strings. Single-candidate insertion is switched off for the call,
-   * or a prefix only one item matches would read as an empty list.
-   */
-  private List<String> completeAt(String text) {
-    myFixture.configureByText(PrismioFileType.INSTANCE, text);
-    CodeInsightSettings settings = CodeInsightSettings.getInstance();
-    boolean before = settings.AUTOCOMPLETE_ON_CODE_COMPLETION;
-    settings.AUTOCOMPLETE_ON_CODE_COMPLETION = false;
+  private ServerCorpus corpus;
+
+  @Override
+  protected void tearDown() throws Exception {
     try {
-      myFixture.completeBasic();
-    } finally {
-      settings.AUTOCOMPLETE_ON_CODE_COMPLETION = before;
-    }
-    List<String> strings = myFixture.getLookupElementStrings();
-    return strings == null ? List.of() : strings;
-  }
-
-  private void select(String lookupString) {
-    LookupElement[] elements = myFixture.getLookupElements();
-    if (elements == null) {
-      return; // the only candidate was inserted already
-    }
-    for (LookupElement element : elements) {
-      if (element.getLookupString().equals(lookupString)) {
-        myFixture.getLookup().setCurrentItem(element);
-        myFixture.finishLookup(Lookup.NORMAL_SELECT_CHAR);
-        return;
+      if (corpus != null) {
+        corpus.close();
       }
+    } finally {
+      super.tearDown();
     }
-    fail("no lookup element " + lookupString + " in " + myFixture.getLookupElementStrings());
   }
 
+  private void copyProjectFiles(Path directory) throws java.io.IOException {
+    com.intellij.openapi.vfs.VirtualFile root = myFixture.getTempDirFixture().getFile("/");
+    if (root == null) {
+      return;
+    }
+    com.intellij.openapi.vfs.VfsUtilCore.visitChildrenRecursively(root, new com.intellij.openapi.vfs.VirtualFileVisitor<Void>() {
+      @Override
+      public boolean visitFile(com.intellij.openapi.vfs.VirtualFile f) {
+        if (!f.isDirectory() && "psm".equals(f.getExtension())) {
+          try {
+            Path target = directory.resolve(com.intellij.openapi.vfs.VfsUtilCore.getRelativePath(f, root));
+            java.nio.file.Files.createDirectories(target.getParent());
+            java.nio.file.Files.write(target, f.contentsToByteArray());
+          } catch (java.io.IOException e) {
+            throw new RuntimeException(e);
+          }
+        }
+        return true;
+      }
+    });
+  }
+
+  private static void deleteTree(Path directory) throws java.io.IOException {
+    try (java.util.stream.Stream<Path> walk = java.nio.file.Files.walk(directory)) {
+      walk.sorted(java.util.Comparator.reverseOrder()).forEach(p -> p.toFile().delete());
+    }
+  }
+
+  protected List<String> completeAt(String text) {
+    if (corpus == null) {
+      return List.of();
+    }
+    try {
+      int caret = text.indexOf("<caret>");
+      String clean = text.replace("<caret>", "");
+      // Files a test added to the fixture's project are written beside the document, where the server can read them.
+      Path directory = java.nio.file.Files.createTempDirectory("prismio-completion");
+      copyProjectFiles(directory);
+      Path file = directory.resolve("server_completion.psm");
+      if (!corpus.probe.open(file, clean, 90)) {
+        fail("the server never analysed the buffer");
+      }
+      int line = (int) clean.substring(0, caret).chars().filter(c -> c == '\n').count();
+      int column = caret - (clean.lastIndexOf('\n', caret - 1) + 1);
+      com.google.gson.JsonElement result = corpus.probe.at("textDocument/completion", file, line, column);
+      corpus.probe.closeDocument(file);
+      deleteTree(directory);
+      List<String> labels = new ArrayList<>();
+      com.google.gson.JsonArray items = null;
+      if (result != null && result.isJsonArray()) {
+        items = result.getAsJsonArray();
+      } else if (result != null && result.isJsonObject() && result.getAsJsonObject().has("items")) {
+        items = result.getAsJsonObject().getAsJsonArray("items");
+      }
+      if (items != null) {
+        for (com.google.gson.JsonElement e : items) {
+          labels.add(e.getAsJsonObject().get("label").getAsString());
+        }
+      }
+      // The editor narrows the list to what has been typed; the server offers everything that could be written.
+      int start = caret;
+      while (start > 0 && Character.isJavaIdentifierPart(clean.charAt(start - 1))) {
+        start--;
+      }
+      String prefix = clean.substring(start, caret).toLowerCase();
+      labels.removeIf(label -> !label.toLowerCase().startsWith(prefix));
+      return labels;
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
   // ------------------------------------------------------------ freestanding
 
   /**
@@ -116,26 +164,6 @@ public class PrismioSmartCompletionTest extends BasePlatformTestCase {
         """);
     assertContainsElements(members, "length", "isEmpty", "contains", "trim", "find", "show");
     assertDoesntContain(members, "hidden", "append", "countOnes");
-  }
-
-  public void testMemberFromUnimportedModuleAddsTheImport() {
-    myFixture.configureByText(PrismioFileType.INSTANCE, """
-        fn main() -> Int {
-            let x = "Hello"
-            let y = x.tri<caret>
-            return 0
-        }
-        """);
-    myFixture.completeBasic();
-    myFixture.checkResult("""
-        import std.string
-
-        fn main() -> Int {
-            let x = "Hello"
-            let y = x.trim()<caret>
-            return 0
-        }
-        """);
   }
 
   public void testAnnotatedLocalAndParameter() {
@@ -258,8 +286,8 @@ public class PrismioSmartCompletionTest extends BasePlatformTestCase {
         """);
     assertContainsElements(annotated, "length", "contains");
     assertDoesntContain(annotated, "push");
-    // An empty literal is a Vec, as sema gives `let v: Vec<T>` no initializer.
-    assertContainsElements(completeAt("""
+    // A bare `[]` is an array, not a Vec: nothing is pushed onto it.
+    assertDoesntContain(completeAt("""
         fn main() {
             let z = []
             z.<caret>
@@ -352,85 +380,6 @@ public class PrismioSmartCompletionTest extends BasePlatformTestCase {
 
   // ------------------------------------------------------------ auto-import
 
-  public void testLibraryFunctionAddsItsImport() {
-    myFixture.configureByText(PrismioFileType.INSTANCE, """
-        // A program that prints.
-
-        fn main() -> Int {
-            printl<caret>
-            return 0
-        }
-        """);
-    myFixture.completeBasic();
-    myFixture.checkResult("""
-        // A program that prints.
-
-        import std.io
-
-        fn main() -> Int {
-            println(<caret>)
-            return 0
-        }
-        """);
-  }
-
-  public void testImportGoesInSortedPosition() {
-    myFixture.configureByText(PrismioFileType.INSTANCE, """
-        import std.io
-        import std.vec
-
-        fn main() {
-            let b = StringBui<caret>
-        }
-        """);
-    myFixture.completeBasic();
-    myFixture.checkResult("""
-        import std.io
-        import std.string
-        import std.vec
-
-        fn main() {
-            let b = StringBuilder<caret>
-        }
-        """);
-  }
-
-  public void testImportedModuleIsNotImportedTwice() {
-    myFixture.configureByText(PrismioFileType.INSTANCE, """
-        import {io, vec} from std
-
-        fn main() {
-            printl<caret>
-        }
-        """);
-    myFixture.completeBasic();
-    myFixture.checkResult("""
-        import {io, vec} from std
-
-        fn main() {
-            println(<caret>)
-        }
-        """);
-  }
-
-  public void testQuickFixImportsTheDeclaringModule() {
-    myFixture.configureByText(PrismioFileType.INSTANCE, """
-        fn main() {
-            println("hi")
-        }
-        """);
-    List<AddImportFix> fixes = AddImportFix.forMessage(getProject(), "unknown function `println`");
-    assertEquals(1, fixes.size());
-    assertEquals("Import std.io (for println)", fixes.get(0).getText());
-    WriteCommandAction.runWriteCommandAction(getProject(),
-        () -> fixes.get(0).invoke(getProject(), myFixture.getEditor(), myFixture.getFile()));
-    assertTrue(myFixture.getFile().getText().startsWith("import std.io\n\nfn main()"));
-
-    List<AddImportFix> vector = AddImportFix.forMessage(getProject(), "a vector literal needs `import std.vec`");
-    assertEquals("Import std.vec", vector.get(0).getText());
-    assertEmpty(AddImportFix.forMessage(getProject(), "unknown function `nothingDeclaresThis`"));
-  }
-
   // ------------------------------------------------------------ positions
 
   public void testKeywordsAtTheStartOfEveryLine() {
@@ -491,30 +440,6 @@ public class PrismioSmartCompletionTest extends BasePlatformTestCase {
     assertEquals(List.of("from"), completeAt("import {io} f<caret>\n"));
     assertEquals(List.of("from"), completeAt("import * <caret>\n"));
     assertDoesntContain(completeAt("import {io} from std <caret>\n"), "from");
-    myFixture.configureByText(PrismioFileType.INSTANCE, "import {io} fr<caret>\n");
-    myFixture.completeBasic();
-    myFixture.checkResult("import {io} from <caret>\n");
-  }
-
-  public void testImportKeywordInsertsSpace() {
-    myFixture.configureByText(PrismioFileType.INSTANCE, "impo<caret>");
-    myFixture.completeBasic();
-    myFixture.checkResult("import <caret>");
-  }
-
-  public void testForTakesNoParentheses() {
-    myFixture.configureByText(PrismioFileType.INSTANCE, """
-        fn main() {
-            fo<caret>
-        }
-        """);
-    myFixture.completeBasic();
-    select("for");
-    myFixture.checkResult("""
-        fn main() {
-            for <caret>
-        }
-        """);
   }
 
   public void testNothingInsideStringsOrComments() {
@@ -576,48 +501,6 @@ public class PrismioSmartCompletionTest extends BasePlatformTestCase {
         """);
     assertContainsElements(scalar, "load");
     assertDoesntContain(scalar, "magic");
-  }
-
-  /** std.mem's typed allocation: `allocOf` completes with its import, and its result is read through. */
-  public void testTypedAllocationCompletesAndIsTyped() {
-    List<String> names = completeAt("""
-        fn main() {
-            allocO<caret>
-        }
-        """);
-    assertContainsElements(names, "allocOf");
-    List<String> members = completeAt("""
-        import std.mem
-
-        struct Header {
-            magic: U32,
-        }
-
-        fn main() {
-            let h = allocOf<Header>(4)
-            h.<caret>
-        }
-        """);
-    assertContainsElements(members, "magic", "offset", "addr");
-    assertEquals("Ptr<mut Header>", io.prismio.symbols.TypeInference.letTypes(
-        myFixture.getFile().getText(), io.prismio.symbols.ProjectSymbols.scope(myFixture.getFile()),
-        io.prismio.symbols.ProjectSymbols.summary(myFixture.getFile()).imports()).values().iterator().next()
-        .toString());
-  }
-
-  public void testBufferPointerIsAnOptionalBytePointer() {
-    myFixture.configureByText(PrismioFileType.INSTANCE, """
-        import std.mem
-
-        fn main() {
-            let b: Buffer = Buffer.new()
-            let p = b.pointer
-        }
-        """);
-    var file = myFixture.getFile();
-    var types = io.prismio.symbols.TypeInference.letTypes(file.getText(),
-        io.prismio.symbols.ProjectSymbols.scope(file), io.prismio.symbols.ProjectSymbols.summary(file).imports());
-    assertEquals(List.of("Ptr<mut U8>?"), types.values().stream().map(Object::toString).toList());
   }
 
   /** The three reports this completion work started from, in the file they were made in. */

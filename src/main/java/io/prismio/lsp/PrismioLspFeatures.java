@@ -91,7 +91,7 @@ import org.jetbrains.annotations.NotNull;
 final class PrismioLspFeatures {
 
   /** The features the server answers, by the platform's name for them. */
-  static final Set<String> SERVED = Set.of("diagnostics", "codeActions", "hover", "inlayHint", "signatureHelp");
+  static final Set<String> SERVED = Set.of("diagnostics", "codeActions", "hover", "inlayHint", "signatureHelp", "completion");
 
   private PrismioLspFeatures() {}
 

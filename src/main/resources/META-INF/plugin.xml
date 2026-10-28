@@ -115,10 +115,8 @@
                 language="Prismio"
                 implementationClass="io.prismio.annotator.PrismioAnnotator"/>
 
-        <!-- Code Completion -->
-        <completion.contributor
-                language="Prismio"
-                implementationClass="io.prismio.completion.PrismioCompletionContributor"/>
+        <!-- Completion (names, members, types, imports and their edits, `build.ums` blocks and keys) comes from the language
+             server (io.prismio.lsp.PrismioLspFeatures). -->
 
         <!-- Parameter info, inlay hints (the type of a `let`, the parameter names at a call) and hover come from the
              language server (io.prismio.lsp.PrismioLspFeatures). -->
@@ -271,10 +269,6 @@
         <annotator
                 language="UMS"
                 implementationClass="io.prismio.ums.UmsAnnotator"/>
-
-        <completion.contributor
-                language="UMS"
-                implementationClass="io.prismio.ums.UmsCompletionContributor"/>
 
         <lang.formatter
                 language="UMS"

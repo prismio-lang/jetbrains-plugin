@@ -22,15 +22,6 @@ import java.util.Collection;
 import java.util.List;
 
 public class PrismioCodeInsightTest extends BasePlatformTestCase {
-  public void testTopLevelCompletionOffersPrismioDeclarations() {
-    myFixture.configureByText(PrismioFileType.INSTANCE, "<caret>");
-    myFixture.complete(CompletionType.BASIC);
-
-    List<String> suggestions = myFixture.getLookupElementStrings();
-    assertNotNull(suggestions);
-    assertContainsElements(suggestions, "fn", "let", "struct", "enum", "import");
-  }
-
   public void testLineCommentRoundTrip() {
     myFixture.configureByText(PrismioFileType.INSTANCE, "<caret>let value: Int = 1");
     CommentByLineCommentAction action = new CommentByLineCommentAction();

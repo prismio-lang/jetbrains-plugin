@@ -16,7 +16,7 @@ public class PrismioGotoDeclarationTest extends BasePlatformTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     io.prismio.toolchain.PrismioProjectSettings.getInstance(getProject()).getState().stdlibPath =
-        PrismioSmartCompletionTest.STDLIB;
+        io.prismio.lsp.PrismioServerCompletionTest.STDLIB;
   }
 
   /** The targets Cmd+Click would offer for the name at `<caret>`. */

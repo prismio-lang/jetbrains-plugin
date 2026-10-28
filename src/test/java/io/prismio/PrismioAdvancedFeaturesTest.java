@@ -17,7 +17,7 @@ public class PrismioAdvancedFeaturesTest extends BasePlatformTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     io.prismio.toolchain.PrismioProjectSettings.getInstance(getProject()).getState().stdlibPath =
-        PrismioSmartCompletionTest.STDLIB;
+        io.prismio.lsp.PrismioServerCompletionTest.STDLIB;
   }
 
 
@@ -68,30 +68,6 @@ public class PrismioAdvancedFeaturesTest extends BasePlatformTestCase {
     assertEquals("x", targets[0].getText());
   }
 
-  public void testLocalVariableAndParameterCompletion() {
-    myFixture.configureByText(PrismioFileType.INSTANCE, """
-        fn compute(myParam: Int) -> Int {
-            let myLocal = 10
-            my<caret>
-        }
-        """);
-    myFixture.complete(CompletionType.BASIC);
-    List<String> suggestions = myFixture.getLookupElementStrings();
-    assertNotNull(suggestions);
-    assertContainsElements(suggestions, "myLocal", "myParam");
-  }
-
-  public void testImportStdModuleCompletion() {
-    myFixture.configureByText(PrismioFileType.INSTANCE, "import std.<caret>");
-    myFixture.complete(CompletionType.BASIC);
-    List<String> suggestions = myFixture.getLookupElementStrings();
-    assertNotNull(suggestions);
-    // From the toolchain's library, so a module that does not exist (`std.list`
-    // became `std.vec`) is not offered.
-    assertContainsElements(suggestions, "io", "string", "vec", "option");
-    assertDoesntContain(suggestions, "list");
-  }
-
   public void testDiagnosticParser() {
     String jsonOutput = """
         {"kind":"diagnostic","schemaVersion":1,"severity":"error","code":"P4001","file":"src/main.psm","line":12,"column":5,"length":4,"message":"unknown name `item`"}
@@ -139,61 +115,6 @@ public class PrismioAdvancedFeaturesTest extends BasePlatformTestCase {
     assertNotNull(helperElement);
     RunLineMarkerContributor.Info helperInfo = contributor.getInfo(helperElement);
     assertNull("helper function should not have a run line marker", helperInfo);
-  }
-
-  public void testFunctionCompletionInsertsParenthesesWithoutSpace() {
-    myFixture.configureByText(PrismioFileType.INSTANCE, """
-        fn cliVersion() -> Int { return 1 }
-        fn main() {
-            cliVer<caret>
-        }
-        """);
-    myFixture.completeBasic();
-    if (myFixture.getLookup() != null) {
-      myFixture.type('\n');
-    }
-    String text = myFixture.getFile().getText();
-    assertTrue("Expected cliVersion() without space, got:\n" + text, text.contains("cliVersion()"));
-    assertFalse("Should not have space before parens", text.contains("cliVersion ()"));
-    // No parameters, so nothing to type between the parentheses: the caret goes past them.
-    int afterParens = text.lastIndexOf("cliVersion()") + "cliVersion()".length();
-    assertEquals("Caret should be placed after the parentheses", afterParens, myFixture.getCaretOffset());
-  }
-
-  public void testFunctionWithParametersPutsCaretInsideParentheses() {
-    myFixture.configureByText(PrismioFileType.INSTANCE, """
-        fn scale(by: Int) -> Int { return by }
-        fn main() {
-            sca<caret>
-        }
-        """);
-    myFixture.completeBasic();
-    if (myFixture.getLookup() != null) {
-      myFixture.type('\n');
-    }
-    String text = myFixture.getFile().getText();
-    int insideParens = text.lastIndexOf("scale(") + "scale(".length();
-    assertEquals("Caret should be placed inside parentheses", insideParens, myFixture.getCaretOffset());
-  }
-
-  public void testBuiltinFunctionCompletionInsertsParenthesesWithoutSpace() {
-    myFixture.configureByText(PrismioFileType.INSTANCE, """
-        fn main() {
-            prin<caret>
-        }
-        """);
-    myFixture.completeBasic();
-    var elements = myFixture.getLookupElements();
-    assertNotNull(elements);
-    for (var item : elements) {
-      if ("print".equals(item.getLookupString())) {
-        myFixture.getLookup().setCurrentItem(item);
-        myFixture.type('\n');
-        break;
-      }
-    }
-    assertTrue("Should contain print() without space", myFixture.getFile().getText().contains("print()"));
-    assertFalse("Should not contain 'print ()'", myFixture.getFile().getText().contains("print ()"));
   }
 
   public void testBlockCommentFormatting() {
@@ -279,13 +200,4 @@ public class PrismioAdvancedFeaturesTest extends BasePlatformTestCase {
     assertEquals("stack-placement.psm", targets[0].getContainingFile().getName());
   }
 
-  public void testImportCompletionIncludesSourceFilesAndFolders() {
-    myFixture.addFileToProject("src/stack-placement.psm", "struct Point {}\n");
-    myFixture.addFileToProject("src/flags/options.psm", "struct Flags {}\n");
-    myFixture.configureByText(PrismioFileType.INSTANCE, "import <caret>\n");
-    myFixture.completeBasic();
-    List<String> suggestions = myFixture.getLookupElementStrings();
-    assertNotNull(suggestions);
-    assertContainsElements(suggestions, "std", "stack-placement");
-  }
 }

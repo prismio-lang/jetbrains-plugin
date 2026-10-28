@@ -17,8 +17,26 @@ names the compiler change it follows. The format follows
   server features the editor uses is `PrismioLspFeatures.SERVED`; the platform client has a customizer for every one
   the server advertises, so each moves over in the commit that deletes the Java that answered it.
 
+- **Hover, inlay hints, parameter info and completion come from the server** (`PrismioLspFeatures.SERVED`). Hover and
+  Quick Documentation show the compiler's signature and comment; hints add the parameter names at a call beside the
+  type of a `let`; parameter info lists every overload; completion offers every library name with the `import` it needs,
+  `import` and `from` lines, types, `Type.` statics, a typed pointer's fields, an optional's functions and the freestanding
+  builtins. The inline rendering of `/** */` comments stays the plugin's. **Setting the language server off, or changing the
+  compiler path, now stops and restarts it at once** (a settings topic; before, nothing changed until the IDE restarted),
+  and the server is started with `PRISMIO_INTERNAL_HOSTED` as VS Code does.
+- `PrismioServerEditorFeaturesTest`, `PrismioServerHoverTest`, `PrismioServerCompletionTest` (the plugin's 35 completion
+  tests, answered by the server) and `PrismioServerNavigationTest` (4 of 7 pass; see docs/LSP_PLAN.md in the compiler
+  repository). They need a toolchain with the compiler repository's 01ed914 or later.
+
 ### Removed
 
+- **`PrismioDocumentationProvider`, `PrismioTypeHintsProvider`, `PrismioParameterInfoHandler`, `completion/` and
+  `UmsCompletionContributor`**, each after a differential or test held the server to what it answered: 1,219 hover names
+  (the server agreed on every one it answers; ten names the compiler's index had no record of are now indexed), 320 hints
+  (the server corrected ten the plugin got wrong), 1,910 call positions, and 35 completion tests (24 failed at the start).
+  The differentials are in Git history (`ab81b99`).
+- `UmsAnnotator`'s "not a name UMS recognises" warning: it repeated UMS2004 and was wrong whenever the toolchain was
+  newer than the plugin. The colours stay.
 - **The external annotator and `PrismioCheckTarget`**, held to the server by a differential test on 344 files before
   they went (same codes, lines and messages; the server says more only in type errors, because it checks with
   `--partial`). **`UmsValueChecks`**: the compiler judges a manifest now; it had drifted (it rejected `.cpp` native
