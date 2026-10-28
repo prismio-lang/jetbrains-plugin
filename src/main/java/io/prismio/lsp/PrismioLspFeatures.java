@@ -76,6 +76,9 @@ import com.intellij.platform.lsp.api.customization.LspTypeHierarchySupport;
 import com.intellij.platform.lsp.api.customization.LspWorkspaceSymbolCustomizer;
 import com.intellij.platform.lsp.api.customization.LspWorkspaceSymbolDisabled;
 import com.intellij.platform.lsp.api.customization.LspWorkspaceSymbolSupport;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import io.prismio.psi.PrismioFile;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
@@ -87,6 +90,10 @@ import org.jetbrains.annotations.NotNull;
  * one. So a feature is added to {@link #SERVED} in the commit that deletes the Java that used to answer it,
  * and every other one is switched off. The server advertises more than {@code SERVED} lists; that is the
  * work still to do, not a limit of the server.
+ *
+ * <p>The platform enables rename, highlights and server-only formatting by default only for plain text, so each of
+ * those is overridden here to say "a Prismio file". A unit test cannot see the difference (it talks to the server
+ * directly), and Rename was greyed out in the IDE until this was found in {@code runIde}.
  *
  * <p>{@code formatting} is the one exception to deleting the Java: Reformat Code and range formatting go
  * to the compiler's own formatter (`prismio fmt`, the same rules as the command line and every other
@@ -149,7 +156,15 @@ final class PrismioLspFeatures {
 
       @Override
       public @NotNull LspFormattingCustomizer getFormattingCustomizer() {
-        return served("formatting") ? new LspFormattingSupport() : LspFormattingDisabled.INSTANCE;
+        return served("formatting") ? new LspFormattingSupport() {
+          @Override
+          public boolean shouldFormatThisFileExclusivelyByServer(@NotNull VirtualFile file, boolean ideCanFormatThisFileItself,
+              boolean serverExplicitlyWantsToFormatThisFile) {
+            // The platform's default is the server only for plain text and files the IDE has no formatter for; the plugin has
+            // an indenter, and Reformat Code is `prismio fmt`'s.
+            return "psm".equals(file.getExtension());
+          }
+        } : LspFormattingDisabled.INSTANCE;
       }
 
       @Override
@@ -189,7 +204,12 @@ final class PrismioLspFeatures {
 
       @Override
       public @NotNull LspDocumentHighlightsCustomizer getDocumentHighlightsCustomizer() {
-        return served("documentHighlights") ? new LspDocumentHighlightsSupport() : LspDocumentHighlightsDisabled.INSTANCE;
+        return served("documentHighlights") ? new LspDocumentHighlightsSupport() {
+          @Override
+          public boolean shouldAskServerForDocumentHighlights(@NotNull PsiFile psiFile) {
+            return psiFile instanceof PrismioFile;
+          }
+        } : LspDocumentHighlightsDisabled.INSTANCE;
       }
 
       @Override
@@ -229,7 +249,12 @@ final class PrismioLspFeatures {
 
       @Override
       public @NotNull LspRenameCustomizer getRenameCustomizer() {
-        return served("rename") ? new LspRenameSupport() : LspRenameDisabled.INSTANCE;
+        return served("rename") ? new LspRenameSupport() {
+          @Override
+          public boolean shouldRunRename(@NotNull PsiFile psiFile) {
+            return psiFile instanceof PrismioFile;
+          }
+        } : LspRenameDisabled.INSTANCE;
       }
     };
   }

@@ -23,6 +23,14 @@ configurations, the project wizard, the manifest's colours).
 
 ### Fixed
 
+- **Rename, Highlight Usages and Reformat Code did not work in the IDE, and every test said they did.** The platform's
+  LSP client enables rename, usage highlights and server-only formatting for plain text and files the IDE has no
+  formatter for, and nothing else, so Rename was greyed out in a `.psm` file, no usages were highlighted, and Reformat
+  Code would have used the plugin's indenter instead of `prismio fmt`. `PrismioLspFeatures` says "a Prismio file" for each
+  now (`PrismioLspFeaturesTest`). Found by using the IDE (`runIde`, 2026-10-29): hover, parameter info, inlay hints,
+  completion, Go to Declaration into `vec.psm`, Find Usages, Rename, Reformat Code, Structure view and Go to Symbol were each
+  seen to work there.
+
 - **`...`, a parameter pack's mark, lexed as a range and a dot.** The compiler scans one `ELLIPSIS` token; so does the
   lexer now (found by `PrismioTokenTablesTest`). `Vec`, `Array`, `Future` and `Channel` colour as library types.
 - **Reformat Code with no server running could not be trusted to space.** The Java formatter changed 19 of 217 files
