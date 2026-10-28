@@ -120,21 +120,8 @@
                 language="Prismio"
                 implementationClass="io.prismio.completion.PrismioCompletionContributor"/>
 
-        <!-- Signatures over a call's arguments (Ctrl+P), overloads from the toolchain's library -->
-        <codeInsight.parameterInfo
-                language="Prismio"
-                implementationClass="io.prismio.completion.PrismioParameterInfoHandler"/>
-
-        <!-- `: Type` after a `let` that does not write one -->
-        <codeInsight.declarativeInlayProvider
-                language="Prismio"
-                implementationClass="io.prismio.hints.PrismioTypeHintsProvider"
-                isEnabledByDefault="true"
-                group="TYPES_GROUP"
-                providerId="prismio.let.types"
-                bundle="messages.PrismioBundle"
-                nameKey="inlay.types.name"
-                descriptionKey="inlay.types.description"/>
+        <!-- Parameter info, inlay hints (the type of a `let`, the parameter names at a call) and hover come from the
+             language server (io.prismio.lsp.PrismioLspFeatures). -->
 
         <!-- Code Formatting -->
         <lang.formatter
