@@ -73,9 +73,9 @@ public class PrismioServerEditorFeaturesTest extends TestCase {
       assertEquals("fn push(self, value: T)", label(push, 0));
       assertEquals(1, push.get("activeParameter").getAsInt());
 
-      // Every overload of a library function, parameters located in the label; a call split into one statement per value.
+      // Every overload of a library function (std.io's println is the variadic one and the empty one), parameters located in the label; a call split into one statement per value.
       JsonObject println = helpAfter(corpus, file, SOURCE, "println(items.length", 8);
-      assertTrue(println.toString(), println.getAsJsonArray("signatures").size() >= 8);
+      assertTrue(println.toString(), println.getAsJsonArray("signatures").size() >= 2);
       assertTrue(println.toString(), println.getAsJsonArray("signatures").get(0).getAsJsonObject().getAsJsonArray("parameters").size() >= 1);
       JsonObject several = helpAfter(corpus, file, SOURCE, "println(\"a\", 3)", 8);
       assertTrue(several.toString(), several.getAsJsonArray("signatures").size() >= 1);

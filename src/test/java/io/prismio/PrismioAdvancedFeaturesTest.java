@@ -9,7 +9,6 @@ import io.prismio.annotator.PrismioDiagnostic;
 import io.prismio.annotator.PrismioDiagnosticParser;
 import io.prismio.execution.PrismioConsoleFilter;
 import io.prismio.execution.PrismioRunLineMarkerContributor;
-import io.prismio.navigation.PrismioGotoDeclarationHandler;
 import java.util.List;
 
 public class PrismioAdvancedFeaturesTest extends BasePlatformTestCase {
@@ -20,53 +19,6 @@ public class PrismioAdvancedFeaturesTest extends BasePlatformTestCase {
         io.prismio.lsp.PrismioServerCompletionTest.STDLIB;
   }
 
-
-  private PsiElement[] targetsAtCaret(String source) {
-    myFixture.configureByText(PrismioFileType.INSTANCE, source);
-    int offset = myFixture.getCaretOffset();
-    PsiElement at = myFixture.getFile().findElementAt(offset);
-    return new PrismioGotoDeclarationHandler()
-        .getGotoDeclarationTargets(at, offset, myFixture.getEditor());
-  }
-
-  public void testLocalVariableResolution() {
-    PsiElement[] targets = targetsAtCaret("""
-        fn test() -> Int {
-            let myLocal = 42
-            return myLo<caret>cal + 1
-        }
-        """);
-    assertNotNull("local variable should resolve", targets);
-    assertEquals(1, targets.length);
-    assertEquals("myLocal", targets[0].getText());
-  }
-
-  public void testFunctionParameterResolution() {
-    PsiElement[] targets = targetsAtCaret("""
-        fn calculate(myParam: Int) -> Int {
-            return myPa<caret>ram * 2
-        }
-        """);
-    assertNotNull("function parameter should resolve", targets);
-    assertEquals(1, targets.length);
-    assertEquals("myParam", targets[0].getText());
-  }
-
-  public void testStructFieldResolution() {
-    PsiElement[] targets = targetsAtCaret("""
-        struct Point {
-            x: Int,
-            y: Int
-        }
-
-        fn getX(p: Point) -> Int {
-            return p.<caret>x
-        }
-        """);
-    assertNotNull("struct field should resolve", targets);
-    assertEquals(1, targets.length);
-    assertEquals("x", targets[0].getText());
-  }
 
   public void testDiagnosticParser() {
     String jsonOutput = """
@@ -187,17 +139,4 @@ public class PrismioAdvancedFeaturesTest extends BasePlatformTestCase {
         io.prismio.formatter.PrismioBlockCommentPostFormatProcessor.formatBlockComment(
             "/**\n* Adds one.\n  */", "    "));
   }
-
-  public void testHyphenatedImportNavigation() {
-    myFixture.addFileToProject("src/stack-placement.psm", "struct Point { x: Int }\n");
-    PsiElement[] targets = targetsAtCaret("""
-        import stack-place<caret>ment
-
-        fn main() -> Int { return 0 }
-        """);
-    assertNotNull("hyphenated import should navigate", targets);
-    assertEquals(1, targets.length);
-    assertEquals("stack-placement.psm", targets[0].getContainingFile().getName());
-  }
-
 }

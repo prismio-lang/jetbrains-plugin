@@ -5,12 +5,9 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.platform.backend.documentation.DocumentationTarget;
 import com.intellij.platform.backend.documentation.InlineDocumentation;
 import com.intellij.platform.backend.documentation.InlineDocumentationProvider;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.xml.util.XmlStringUtil;
 import io.prismio.lexer.PrismioLexer;
-import io.prismio.navigation.Declaration;
-import io.prismio.navigation.DeclarationScanner;
 import io.prismio.psi.PrismioFile;
 import io.prismio.psi.PrismioTypes;
 import java.util.ArrayList;
@@ -27,7 +24,6 @@ public final class PrismioInlineDocumentationProvider implements InlineDocumenta
       return List.of();
     }
 
-    List<Declaration> declarations = DeclarationScanner.collect(file);
     List<InlineDocumentation> documentation = new ArrayList<>();
     CharSequence source = file.getViewProvider().getContents();
     Lexer lexer = new PrismioLexer();
@@ -39,7 +35,7 @@ public final class PrismioInlineDocumentationProvider implements InlineDocumenta
       if (lexer.getTokenType() == PrismioTypes.DOC_COMMENT
           && startsWith(source, lexer.getTokenStart(), "/**")) {
         TextRange range = new TextRange(lexer.getTokenStart(), lexer.getTokenEnd());
-        PsiElement owner = findOwner(declarations, range.getEndOffset());
+        TextRange owner = ownerOf(source, range.getEndOffset());
         String comment =
             source.subSequence(range.getStartOffset(), range.getEndOffset()).toString();
         documentation.add(new PrismioInlineDocumentation(range, owner, render(comment)));
@@ -61,13 +57,20 @@ public final class PrismioInlineDocumentationProvider implements InlineDocumenta
     return null;
   }
 
-  private static @Nullable PsiElement findOwner(
-      @NotNull List<Declaration> declarations, int commentEnd) {
-    return declarations.stream()
-        .map(Declaration::getElement)
-        .filter(element -> element != null && element.getTextOffset() >= commentEnd)
-        .min((left, right) -> Integer.compare(left.getTextOffset(), right.getTextOffset()))
-        .orElse(null);
+  /** What the comment documents: the line of the first code after it. */
+  private static @Nullable TextRange ownerOf(@NotNull CharSequence source, int commentEnd) {
+    int start = commentEnd;
+    while (start < source.length() && Character.isWhitespace(source.charAt(start))) {
+      start++;
+    }
+    if (start >= source.length()) {
+      return null;
+    }
+    int end = start;
+    while (end < source.length() && source.charAt(end) != '\n') {
+      end++;
+    }
+    return new TextRange(start, end);
   }
 
   private static @NotNull String render(@NotNull String comment) {
@@ -105,7 +108,7 @@ public final class PrismioInlineDocumentationProvider implements InlineDocumenta
   }
 
   private record PrismioInlineDocumentation(@NotNull TextRange documentationRange,
-      @Nullable PsiElement owner, @NotNull String renderedText) implements InlineDocumentation {
+      @Nullable TextRange owner, @NotNull String renderedText) implements InlineDocumentation {
     @Override
     public @NotNull TextRange getDocumentationRange() {
       return documentationRange;
@@ -113,7 +116,7 @@ public final class PrismioInlineDocumentationProvider implements InlineDocumenta
 
     @Override
     public @NotNull TextRange getDocumentationOwnerRange() {
-      return owner == null ? documentationRange : owner.getTextRange();
+      return owner == null ? documentationRange : owner;
     }
 
     @Override

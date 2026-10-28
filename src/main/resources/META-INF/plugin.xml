@@ -170,19 +170,9 @@
         <enterHandlerDelegate
                 implementation="io.prismio.handler.PrismioEnterHandler"/>
 
-        <!-- Structure View -->
-        <lang.psiStructureViewFactory
-                language="Prismio"
-                implementationClass="io.prismio.navigation.PrismioStructureViewFactory"/>
-
         <!-- File Templates -->
         <internalFileTemplate name="PrismioFile"/>
         <internalFileTemplate name="UmsManifest"/>
-
-        <!-- Find Usages -->
-        <lang.findUsagesProvider
-                language="Prismio"
-                implementationClass="io.prismio.navigation.PrismioFindUsagesProvider"/>
 
         <!-- Hover and Quick Documentation come from the language server (io.prismio.lsp.PrismioLspFeatures). -->
 
@@ -195,26 +185,8 @@
                 language="Prismio"
                 implementationClass="io.prismio.spellcheck.PrismioSpellcheckingStrategy"/>
 
-        <!-- Identifier tokens get a PSI class of their own, which is what lets
-             them carry a reference. Find Usages and highlight-usages-under-caret
-             are built on references; a plain leaf is never asked for any, so
-             both silently reported nothing. -->
-        <lang.ast.factory
-                language="Prismio"
-                implementationClass="io.prismio.psi.PrismioAstFactory"/>
-
-        <!-- Rename rewrites each resolved reference through a manipulator. -->
-        <lang.elementManipulator
-                forClass="io.prismio.psi.PrismioIdentifier"
-                implementationClass="io.prismio.psi.PrismioIdentifierManipulator"/>
-
-        <!-- Go to Declaration: Cmd+Click and Cmd+B on a name -->
-        <gotoDeclarationHandler
-                implementation="io.prismio.navigation.PrismioGotoDeclarationHandler"/>
-
-        <!-- Go to Symbol -->
-        <gotoSymbolContributor
-                implementation="io.prismio.navigation.PrismioChooseByNameContributor"/>
+        <!-- Go to Declaration, Find Usages, Rename, Highlight Usages, Structure View and Go to Symbol come from the
+             language server (io.prismio.lsp.PrismioLspFeatures). -->
 
         <!-- Gutter Run Line Marker for fn main() -->
         <runLineMarkerContributor
