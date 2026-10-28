@@ -17,7 +17,7 @@ import junit.framework.TestCase;
  * Go to declaration, find usages and rename, asked of the language server.
  *
  * <p>These were the plugin's own navigation tests (a call resolves to its function, a type name to its struct, an
- * import to its module, a method through its receiver's type, the current file before the project, usages without the
+ * import to its module, a method through its receiver's type, an overload chosen by its argument, usages without the
  * declaration, a rename that rewrites call sites and not a similar name). The plugin's scope resolver was deleted once
  * every one of them held of the server. Where the plugin resolved a name from a file the document does not import, the
  * test now imports it: the compiler needs the import, and the server answers what the compiler resolves.
@@ -92,6 +92,59 @@ public class PrismioServerNavigationTest extends TestCase {
       params.add("context", context);
       JsonObject reply = corpus.probe.request("textDocument/references", params, 60);
       return locations(reply == null ? null : reply.get("result"));
+    }
+
+    /** The names of the outline (every level), as {@code name} strings in document order. */
+    List<String> outline() throws Exception {
+      JsonObject params = new JsonObject();
+      JsonObject document = new JsonObject();
+      document.addProperty("uri", file.toUri().toString());
+      params.add("textDocument", document);
+      JsonObject reply = corpus.probe.request("textDocument/documentSymbol", params, 60);
+      List<String> names = new ArrayList<>();
+      if (reply != null && reply.has("result") && reply.get("result").isJsonArray()) {
+        collect(reply.getAsJsonArray("result"), names);
+      }
+      return names;
+    }
+
+    private void collect(JsonArray symbols, List<String> names) {
+      for (JsonElement e : symbols) {
+        JsonObject symbol = e.getAsJsonObject();
+        names.add(symbol.get("name").getAsString());
+        if (symbol.has("children")) {
+          collect(symbol.getAsJsonArray("children"), names);
+        }
+      }
+    }
+
+    /** The names {@code workspace/symbol} offers for a query. */
+    List<String> workspaceSymbols(String query) throws Exception {
+      JsonObject params = new JsonObject();
+      params.addProperty("query", query);
+      JsonObject reply = corpus.probe.request("workspace/symbol", params, 60);
+      List<String> names = new ArrayList<>();
+      if (reply != null && reply.has("result") && reply.get("result").isJsonArray()) {
+        for (JsonElement e : reply.getAsJsonArray("result")) {
+          names.add(e.getAsJsonObject().get("name").getAsString());
+        }
+      }
+      return names;
+    }
+
+    /** How many places the document highlights for the name at the caret. */
+    int highlights() throws Exception {
+      JsonObject params = new JsonObject();
+      JsonObject document = new JsonObject();
+      document.addProperty("uri", file.toUri().toString());
+      params.add("textDocument", document);
+      JsonObject position = new JsonObject();
+      position.addProperty("line", line);
+      position.addProperty("character", column);
+      params.add("position", position);
+      JsonObject reply = corpus.probe.request("textDocument/documentHighlight", params, 60);
+      return reply != null && reply.has("result") && reply.get("result").isJsonArray()
+          ? reply.getAsJsonArray("result").size() : 0;
     }
 
     /** The document's text after renaming the name at the caret, or null when the server refuses. */
@@ -212,31 +265,35 @@ public class PrismioServerNavigationTest extends TestCase {
     assertEquals(List.of(), new Doc("import no.such.mod<caret>ule\n\nfn main() -> Int { return 0 }\n", Map.of()).definition());
   }
 
-  public void testResolutionCrossesFilesThroughTheImportAndTheCurrentFileWins() throws Exception {
+  public void testResolutionCrossesFilesThroughTheImportAndOverloadsResolveByArgument() throws Exception {
     if (corpus == null) {
       return;
     }
+    Map<String, String> other = Map.of("other.psm", "public fn shared(value: Int) -> Int {\n    return value + 1\n}\n");
     Doc across = new Doc("""
-        import helpers
-
-        fn main() -> Int {
-            return sha<caret>red(1)
-        }
-        """, Map.of("helpers.psm", "public fn shared(value: Int) -> Int {\n    return value + 1\n}\n"));
-    assertEquals(List.of("helpers.psm: public fn shared(value: Int) -> Int {"), across.definition());
-
-    Doc local = new Doc("""
         import other
 
-        fn shared(value: Int) -> Int {
-            return value * 2
-        }
-
         fn main() -> Int {
             return sha<caret>red(1)
         }
-        """, Map.of("other.psm", "public fn shared(value: Int) -> Int {\n    return value + 1\n}\n"));
-    assertEquals(List.of("main.psm: fn shared(value: Int) -> Int {"), local.definition());
+        """, other);
+    assertEquals(List.of("other.psm: public fn shared(value: Int) -> Int {"), across.definition());
+
+    // The plugin's scope resolver let the current file win over an import. The compiler does not: a function of the
+    // same name and parameter types in both is "duplicate definition" (P4001), and one that differs in its parameter
+    // types is an overload, chosen by the arguments.
+    Doc overload = new Doc("""
+        import other
+
+        fn shared(text: String) -> Int {
+            return 2
+        }
+
+        fn main() -> Int {
+            return sha<caret>red(1) + shared("x")
+        }
+        """, other);
+    assertEquals(List.of("other.psm: public fn shared(value: Int) -> Int {"), overload.definition());
   }
 
   public void testAMethodCallResolvesThroughTheReceiversType() throws Exception {
@@ -291,5 +348,84 @@ public class PrismioServerNavigationTest extends TestCase {
 
         fn other() -> Int { return helperish(1) }
         """, Map.of()).renamed("renamed"));
+  }
+
+  public void testALocalAParameterAndAFieldResolve() throws Exception {
+    if (corpus == null) {
+      return;
+    }
+    assertEquals(List.of("main.psm: let myLocal = 42"), new Doc("""
+        fn test() -> Int {
+            let myLocal = 42
+            return myLo<caret>cal + 1
+        }
+        """, Map.of()).definition());
+    assertEquals(List.of("main.psm: fn calculate(myParam: Int) -> Int {"), new Doc("""
+        fn calculate(myParam: Int) -> Int {
+            return myPa<caret>ram * 2
+        }
+        """, Map.of()).definition());
+    assertEquals(List.of("main.psm: x: Int,"), new Doc("""
+        struct Point {
+            x: Int,
+            y: Int
+        }
+
+        fn getX(p: Point) -> Int {
+            return p.<caret>x
+        }
+        """, Map.of()).definition());
+  }
+
+  /** The outline lists what the file declares, and not what a function declares inside itself. */
+  public void testTheOutlineListsDeclarationsAndSkipsLocals() throws Exception {
+    if (corpus == null) {
+      return;
+    }
+    List<String> names = new Doc("""
+        let mut VERSION = 1
+        struct Point { x: Int }
+        enum Direction { North, South }
+        trait Drawable { fn draw() }
+        impl Point {
+          fn distance() {
+            let local = 1
+          }
+        }
+        codeset Status: U16 { Ok = 200, NotFound = 404 }
+        public codeset Delta { Back = -1, Stay }
+        fn main() {}
+        """, Map.of()).outline();
+    for (String expected : List.of("VERSION", "Point", "Direction", "Drawable", "draw", "distance", "Status", "Delta", "main")) {
+      assertTrue(expected + " is in the outline: " + names, names.contains(expected));
+    }
+    assertFalse("a local is not in the outline: " + names, names.contains("local"));
+  }
+
+  public void testGoToSymbolFindsADeclarationByPartOfItsName() throws Exception {
+    if (corpus == null) {
+      return;
+    }
+    Doc doc = new Doc("""
+        struct PointCloud { x: Int }
+
+        fn pointOf(c: PointCloud) -> Int { return c.x }
+
+        fn main() -> Int { return 0 }
+        """, Map.of());
+    List<String> found = doc.workspaceSymbols("Point");
+    assertTrue(found.toString(), found.contains("PointCloud"));
+    assertFalse(found.toString(), found.contains("main"));
+  }
+
+  public void testHighlightsMarkEveryUseOfTheNameUnderTheCaret() throws Exception {
+    if (corpus == null) {
+      return;
+    }
+    assertEquals(3, new Doc("""
+        fn help<caret>er(value: Int) -> Int { return value }
+
+        fn main() -> Int { return helper(1) + helper(2) }
+        """, Map.of()).highlights());
   }
 }
