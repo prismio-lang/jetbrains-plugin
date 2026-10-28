@@ -81,7 +81,8 @@ public final class PrismioWords {
       "prop", "cold", "hot", "inline", "noinline", "noreturn", "const",
       "async", "await", "scope", "join",
       "export", "naked", "section", "align", "repr", "packed",
-      "volatile");
+      "volatile",
+      "codeset", "typelist", "workload", "setup", "measure");
 
   /**
    * Built-in types — {@code typeFromSemKey} and {@code typeFromAnnotation} in

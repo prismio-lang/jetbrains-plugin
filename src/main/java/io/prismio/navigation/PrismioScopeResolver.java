@@ -156,10 +156,10 @@ public final class PrismioScopeResolver {
       IElementType tokenType = lexer.getTokenType();
       String tokenText = text.subSequence(lexer.getTokenStart(), lexer.getTokenEnd()).toString();
 
-      if (tokenType == PrismioTypes.KEYWORD) {
+      if (tokenType == PrismioTypes.KEYWORD || tokenType == PrismioTypes.CONTEXTUAL_KEYWORD) {
         if ("struct".equals(tokenText) && braceDepth == 0) {
           inStruct = true;
-        } else if ("enum".equals(tokenText) && braceDepth == 0) {
+        } else if (("enum".equals(tokenText) || "codeset".equals(tokenText)) && braceDepth == 0) {
           inEnum = true;
         }
       } else if (tokenType == PrismioTypes.LBRACE) {
@@ -345,8 +345,11 @@ public final class PrismioScopeResolver {
   }
 
   private static boolean isKeyword(@Nullable PsiElement element, @NotNull String keyword) {
-    return element != null && element.getNode() != null
-        && element.getNode().getElementType() == PrismioTypes.KEYWORD
+    if (element == null || element.getNode() == null) {
+      return false;
+    }
+    IElementType type = element.getNode().getElementType();
+    return (type == PrismioTypes.KEYWORD || type == PrismioTypes.CONTEXTUAL_KEYWORD)
         && keyword.equals(element.getText());
   }
 
@@ -382,7 +385,7 @@ public final class PrismioScopeResolver {
   }
 
   private static boolean isInsideEnumBody(@NotNull PsiElement element) {
-    return isInsideDeclarationBlock(element, "enum");
+    return isInsideDeclarationBlock(element, "enum") || isInsideDeclarationBlock(element, "codeset");
   }
 
   private static boolean isInsideDeclarationBlock(@NotNull PsiElement element, @NotNull String keyword) {

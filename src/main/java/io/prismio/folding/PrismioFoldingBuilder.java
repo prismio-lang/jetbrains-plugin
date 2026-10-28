@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
 /** Provides collapsible regions for multiline Prismio function bodies. */
 public final class PrismioFoldingBuilder extends FoldingBuilderEx implements DumbAware {
   private static final Set<String> DECLARATION_BOUNDARIES =
-      Set.of("extern", "fn", "struct", "enum", "trait", "impl", "import");
+      Set.of("extern", "fn", "struct", "enum", "codeset", "typelist", "trait", "impl", "import");
 
   @Override
   public FoldingDescriptor @NotNull[] buildFoldRegions(
@@ -53,7 +53,7 @@ public final class PrismioFoldingBuilder extends FoldingBuilderEx implements Dum
         continue;
       }
 
-      if (tokenType == PrismioTypes.KEYWORD) {
+      if (tokenType == PrismioTypes.KEYWORD || tokenType == PrismioTypes.CONTEXTUAL_KEYWORD) {
         if ("fn".equals(tokenText)) {
           waitingForBody = true;
           parametersStarted = false;

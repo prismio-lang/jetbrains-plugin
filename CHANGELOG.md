@@ -9,6 +9,14 @@ names the compiler change it follows. The format follows
 
 ### Fixed
 
+- **`codeset` was not a keyword.** The plugin's word tables did not contain it, nor `typelist`, `workload`, `setup` or
+  `measure`, which the compiler lists as contextual words (the compiler's `token_tables` test had them on a "plugin does not
+  know yet" allowance). Each is highlighted as a keyword where the parser reads one and never elsewhere: `codeset`, `typelist`
+  and `workload` first on a line or after `public`/`private`/`internal` with a name following (`for typelist in lists` and
+  `let codeset = 1` stay names), `setup` and `measure` before a block. A `codeset` is a declaration kind of its own in the
+  structure view and Go to, its entries are coloured like an enum's variants, and there is a `codeset` live template. The
+  allowance in the compiler's test is empty now.
+
 - **Enter after `{` with code still on the line put that code twice as far in as it belongs.** Pressing Enter at
   `if (a) { <caret>b() }` left IntelliJ's own indent on the new line and the handler inserted a second one, so `b()`
   landed in column 8 with the caret left behind in column 4 (16 and 8 inside a function). `PrismioEnterHandler` sets the

@@ -195,6 +195,43 @@ public class PrismioLexerTest extends TestCase {
     assertEquals(PrismioTypes.IDENTIFIER, types("x = noreturn + 1").get(2));
   }
 
+  /**
+   * `codeset`, `typelist` and `workload` begin a declaration only when a name follows (src/parse/decl.psm,
+   * `atTypelistDecl`), and are otherwise ordinary names, so each is highlighted as a keyword where the
+   * compiler reads one and never elsewhere. The tables the plugin keeps are checked against the compiler's
+   * by the `token_tables` test in the compiler's suite.
+   */
+  public void testDeclarationWordsAreKeywordsOnlyBeforeAName() {
+    assertEquals(PrismioTypes.CONTEXTUAL_KEYWORD, types("codeset Status: U16 { Ok = 200 }").get(0));
+    assertEquals(PrismioTypes.CONTEXTUAL_KEYWORD, types("typelist Printable { Display }").get(0));
+    assertEquals(PrismioTypes.CONTEXTUAL_KEYWORD, types("workload cells {").get(0));
+    assertEquals(PrismioTypes.CONTEXTUAL_KEYWORD, types("public codeset Status { Ok = 1 }").get(1));
+    assertEquals(PrismioTypes.CONTEXTUAL_KEYWORD, types("private typelist Secret { Int }").get(1));
+    assertEquals(PrismioTypes.CONTEXTUAL_KEYWORD, types("fn f() {}\n\ncodeset Late { A }").get(6));
+    // The name after it is a name.
+    assertEquals(PrismioTypes.IDENTIFIER, types("codeset Status { Ok = 1 }").get(1));
+
+    assertEquals(PrismioTypes.IDENTIFIER, types("let codeset = 1").get(1));
+    assertEquals(PrismioTypes.IDENTIFIER, types("let typelist = [1]").get(1));
+    assertEquals(PrismioTypes.IDENTIFIER, types("codeset = 3").get(0));
+    assertEquals(PrismioTypes.IDENTIFIER, types("codeset.size()").get(0));
+    assertEquals(PrismioTypes.IDENTIFIER, types("f(codeset, 2)").get(2));
+    assertEquals(PrismioTypes.IDENTIFIER, types("x = typelist + 1").get(2));
+    assertEquals(PrismioTypes.IDENTIFIER, types("for typelist in lists { }").get(1));
+    assertEquals(PrismioTypes.IDENTIFIER, types("let workload = 2").get(1));
+  }
+
+  /** `setup { }` and `measure { }` are the clauses of a `workload`; a variable of either name is not. */
+  public void testWorkloadClausesAreKeywordsOnlyBeforeABlock() {
+    List<IElementType> workload = types("workload cells {\n    setup { }\n    measure { }\n}");
+    assertEquals(PrismioTypes.CONTEXTUAL_KEYWORD, workload.get(3));
+    assertEquals(PrismioTypes.CONTEXTUAL_KEYWORD, workload.get(6));
+    assertEquals(PrismioTypes.IDENTIFIER, types("let setup = 1").get(1));
+    assertEquals(PrismioTypes.IDENTIFIER, types("let measure = 1").get(1));
+    assertEquals(PrismioTypes.IDENTIFIER, types("measure(1)").get(0));
+    assertEquals(PrismioTypes.IDENTIFIER, types("if (setup) { }").get(2));
+  }
+
   public void testTypesAreSplitByOrigin() {
     assertEquals(List.of(PrismioTypes.BUILTIN_TYPE), types("Usize"));
     assertEquals(List.of(PrismioTypes.BUILTIN_TYPE), types("String"));

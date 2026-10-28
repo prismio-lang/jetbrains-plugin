@@ -61,6 +61,22 @@
         </context>
     </template>
 
+    <!-- Codeset -->
+    <template name="codeset" value="codeset $NAME$: $TYPE$ {&#10;    $ENTRY1$ = $VALUE1$,&#10;    $ENTRY2$ = $VALUE2$,&#10;    $END$&#10;}"
+              description="Create codeset"
+              toReformat="true"
+              toShortenFQNames="true">
+        <variable name="NAME" expression="" defaultValue="&quot;Name&quot;" alwaysStopAt="true" />
+        <variable name="TYPE" expression="" defaultValue="&quot;U16&quot;" alwaysStopAt="true" />
+        <variable name="ENTRY1" expression="" defaultValue="&quot;Entry1&quot;" alwaysStopAt="true" />
+        <variable name="VALUE1" expression="" defaultValue="&quot;0&quot;" alwaysStopAt="true" />
+        <variable name="ENTRY2" expression="" defaultValue="&quot;Entry2&quot;" alwaysStopAt="true" />
+        <variable name="VALUE2" expression="" defaultValue="&quot;1&quot;" alwaysStopAt="true" />
+        <context>
+            <option name="PRISMIO" value="true" />
+        </context>
+    </template>
+
     <!-- Implementation -->
     <template name="impl" value="impl $NAME$ {&#10;    fn $METHOD$() {&#10;        $END$&#10;    }&#10;}"
               description="Create implementation block"

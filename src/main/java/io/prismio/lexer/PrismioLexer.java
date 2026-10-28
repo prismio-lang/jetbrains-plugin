@@ -243,13 +243,21 @@ public final class PrismioLexer extends LexerBase {
     if (text.equals("volatile")) {
       return !isPointerQualifier();
     }
+    // `codeset Status`, `typelist Printable`, `workload cells`: a declaration, so the word begins a line
+    // (or follows a visibility marker) and a name follows. Anywhere else it is a variable.
+    boolean declaration = text.equals("codeset") || text.equals("typelist") || text.equals("workload");
+    if (declaration && !startsDeclaration()) {
+      return true;
+    }
+    // `setup { }` and `measure { }`: the clauses of a workload, read as one before a block.
+    boolean workloadClause = text.equals("setup") || text.equals("measure");
     boolean async = text.equals("async");
     boolean scope = text.equals("scope");
     // Words that are markers only when another word follows: `hot fn`, `const CELLS`. A
     // variable called `hot` or `const` is followed by an operator or a bracket.
     boolean awaitOrJoin = text.equals("await") || text.equals("join") || text.equals("hot")
         || text.equals("const") || text.equals("noinline") || text.equals("noreturn");
-    if (!async && !scope && !awaitOrJoin) {
+    if (!async && !scope && !awaitOrJoin && !declaration && !workloadClause) {
       return false;
     }
     int at = tokenEnd;
@@ -260,7 +268,7 @@ public final class PrismioLexer extends LexerBase {
       return true;
     }
     char next = buffer.charAt(at);
-    if (scope) {
+    if (scope || workloadClause) {
       return next != '{';
     }
     if (at == tokenEnd) {
@@ -271,6 +279,22 @@ public final class PrismioLexer extends LexerBase {
           && (at + 2 == bufferEnd || !isIdentifierPart(buffer.charAt(at + 2))));
     }
     return !(Character.isLetter(next) || next == '_');
+  }
+
+  /**
+   * Whether the word being classified begins a declaration: first on its line, or right after a
+   * visibility marker (`public codeset Status`). {@code for typelist in lists} is a use.
+   */
+  private boolean startsDeclaration() {
+    int at = tokenStart;
+    while (at > 0 && (buffer.charAt(at - 1) == ' ' || buffer.charAt(at - 1) == '\t')) {
+      at--;
+    }
+    if (at == 0 || buffer.charAt(at - 1) == '\n' || buffer.charAt(at - 1) == '\r') {
+      return true;
+    }
+    String before = wordEndingAt(at);
+    return before.equals("public") || before.equals("private") || before.equals("internal");
   }
 
   /**

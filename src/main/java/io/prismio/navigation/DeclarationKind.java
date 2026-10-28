@@ -8,6 +8,8 @@ public enum DeclarationKind {
     FUNCTION("function", AllIcons.Nodes.Function),
     STRUCT("struct", AllIcons.Nodes.Class),
     ENUM("enum", AllIcons.Nodes.Enum),
+    CODESET("codeset", AllIcons.Nodes.Enum),
+    TYPELIST("typelist", AllIcons.Nodes.Type),
     TRAIT("trait", AllIcons.Nodes.Interface),
     IMPLEMENTATION("implementation", AllIcons.Nodes.AbstractClass),
     CONSTANT("global binding", AllIcons.Nodes.Constant),
@@ -37,6 +39,8 @@ public enum DeclarationKind {
             case "fn" -> FUNCTION;
             case "struct" -> braceDepth == 0 ? STRUCT : null;
             case "enum" -> braceDepth == 0 ? ENUM : null;
+            case "codeset" -> braceDepth == 0 ? CODESET : null;
+            case "typelist" -> braceDepth == 0 ? TYPELIST : null;
             case "trait" -> braceDepth == 0 ? TRAIT : null;
             case "impl" -> braceDepth == 0 ? IMPLEMENTATION : null;
             case "let" -> braceDepth == 0 ? CONSTANT : null;

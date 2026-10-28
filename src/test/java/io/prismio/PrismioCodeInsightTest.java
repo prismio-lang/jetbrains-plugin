@@ -281,6 +281,28 @@ public class PrismioCodeInsightTest extends BasePlatformTestCase {
             && "Point".equals(declaration.getName())));
   }
 
+  /** A `codeset` and a `typelist` are declarations of their own kind, found the way an `enum` is. */
+  public void testDeclarationScannerFindsCodesetsAndTypelists() {
+    myFixture.configureByText(PrismioFileType.INSTANCE, """
+        codeset Status: U16 { Ok = 200, NotFound = 404 }
+        public codeset Delta { Back = -1, Stay }
+        typelist Printable { Display }
+        let codeset = 1
+        fn main() {}
+        """);
+
+    List<Declaration> declarations = DeclarationScanner.collect(myFixture.getFile());
+
+    assertTrue(declarations.stream().anyMatch(declaration -> declaration.getKind() == DeclarationKind.CODESET
+        && "Status".equals(declaration.getName())));
+    assertTrue(declarations.stream().anyMatch(declaration -> declaration.getKind() == DeclarationKind.CODESET
+        && "Delta".equals(declaration.getName())));
+    assertTrue(declarations.stream().anyMatch(declaration -> declaration.getKind() == DeclarationKind.TYPELIST
+        && "Printable".equals(declaration.getName())));
+    // The entries are not declarations of the file, and a variable that happens to be called `codeset` is a name.
+    assertFalse(declarations.stream().anyMatch(declaration -> "Ok".equals(declaration.getName())));
+  }
+
   private static void assertHighlight(
       List<HighlightInfo> highlights, String source, String text, TextAttributesKey expectedKey) {
     int startOffset = source.indexOf(text);

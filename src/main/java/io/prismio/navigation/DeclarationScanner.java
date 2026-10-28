@@ -52,6 +52,10 @@ public final class DeclarationScanner {
         } else if (!"mut".equals(tokenText)) {
           pendingKind = null;
         }
+      } else if (tokenType == PrismioTypes.CONTEXTUAL_KEYWORD
+          && ("codeset".equals(tokenText) || "typelist".equals(tokenText))) {
+        // Contextual words the lexer already knows begin a declaration here (`codeset Status`).
+        pendingKind = DeclarationKind.fromKeyword(tokenText, braceDepth);
       } else if (tokenType == PrismioTypes.CONTEXTUAL_KEYWORD && "const".equals(tokenText)) {
         // `const CELLS = area(8)`: a constant, as `let` makes one. `const fn` is overridden by `fn`.
         pendingKind = braceDepth == 0 ? DeclarationKind.CONSTANT : null;

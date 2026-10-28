@@ -254,8 +254,8 @@ public final class PrismioAnnotator implements Annotator {
       prevSibling = prevSibling.getPrevSibling();
     }
 
-    return prevSibling != null && prevSibling.getNode().getElementType() == PrismioTypes.KEYWORD
-        && "enum".equals(prevSibling.getText());
+    // A `codeset` names its entries as an enum does its variants, and is coloured the same way.
+    return isKeyword(prevSibling, "enum") || isKeyword(prevSibling, "codeset");
   }
 
   private boolean isInTraitDeclaration(@NotNull PsiElement element) {
@@ -288,7 +288,7 @@ public final class PrismioAnnotator implements Annotator {
   }
 
   private boolean isEnumVariant(@NotNull PsiElement element) {
-    return isInsideDeclarationBody(element, "enum");
+    return isInsideDeclarationBody(element, "enum") || isInsideDeclarationBody(element, "codeset");
   }
 
   private boolean isTypeReference(@NotNull PsiElement element) {
@@ -384,8 +384,13 @@ public final class PrismioAnnotator implements Annotator {
     return current;
   }
 
+  /** A keyword by its spelling: a word such as `codeset` is a keyword only in a declaration, so it lexes as contextual. */
   private boolean isKeyword(PsiElement element, @NotNull String keyword) {
-    return element != null && element.getNode().getElementType() == PrismioTypes.KEYWORD
+    if (element == null) {
+      return false;
+    }
+    IElementType type = element.getNode().getElementType();
+    return (type == PrismioTypes.KEYWORD || type == PrismioTypes.CONTEXTUAL_KEYWORD)
         && keyword.equals(element.getText());
   }
 
