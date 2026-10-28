@@ -7,6 +7,16 @@ names the compiler change it follows. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- **`build.ums` with `const`, `enum` and `${}`.** The manifest lexer joins `Channel.BETA` into one identifier (a `.` that a
+  letter follows, as in the compiler's `lexIdentifier`). `const` and `enum` are coloured as keywords where a declaration
+  starts (`const NAME =`, `enum Name {`, shape checked, so a bare `const` stays a name), the declared name and each use of it
+  (also `Channel.BETA` for a declared enum, wherever the declaration sits) as constants, and `${NAME}` and `$$` inside a
+  string as interpolation and escape. The colour page has a demo and settings for all three. A name the plugin does not
+  model is still never judged: the diagnostics (`UMS1201`-`UMS1209`) come from the compiler through the language server.
+  The context tests cover declaration, reference and the undeclared and half-typed cases.
+
 ### Fixed
 
 - **`codeset` was not a keyword.** The plugin's word tables did not contain it, nor `typelist`, `workload`, `setup` or

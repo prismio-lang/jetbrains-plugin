@@ -30,6 +30,18 @@ public final class UmsSyntaxHighlighter extends SyntaxHighlighterBase {
   public static final TextAttributesKey CALL = createTextAttributesKey(
       "UMS_CALL", DefaultLanguageHighlighterColors.FUNCTION_CALL);
 
+  /** A name declared by `const` or `enum`, and a use of one. */
+  public static final TextAttributesKey CONSTANT = createTextAttributesKey(
+      "UMS_CONSTANT", DefaultLanguageHighlighterColors.CONSTANT);
+
+  /** `${NAME}` inside a string. */
+  public static final TextAttributesKey INTERPOLATION = createTextAttributesKey(
+      "UMS_INTERPOLATION", DefaultLanguageHighlighterColors.TEMPLATE_LANGUAGE_COLOR);
+
+  /** `$$`, a literal dollar sign inside a string. */
+  public static final TextAttributesKey ESCAPE = createTextAttributesKey(
+      "UMS_ESCAPE", DefaultLanguageHighlighterColors.VALID_STRING_ESCAPE);
+
   public static final TextAttributesKey IDENTIFIER = createTextAttributesKey(
       "UMS_IDENTIFIER", DefaultLanguageHighlighterColors.IDENTIFIER);
 

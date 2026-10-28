@@ -28,6 +28,15 @@ public final class UmsWords {
       "profiles", "Per-profile settings: `debug { }` and `release { }`.",
       "dependencies", "Packages this project needs.");
 
+  /**
+   * Declarations at the top level that are not blocks: names a manifest defines once and uses anywhere a
+   * value is written. They are gone before lowering ({@code ums/model/constants.psm}).
+   */
+  public static final Map<String, String> TOP_LEVEL_DECLARATIONS = ordered(
+      "const", "`const NAME = value`: names a string, integer, boolean or list. `${NAME}` inside a string "
+          + "interpolates it; `$$` is a literal `$`.",
+      "enum", "`enum Name { A, B = \"b\" }`: a closed set of values. `Name.A` is a variant's value, or its name.");
+
   /** Keys inside `project { }`. */
   public static final Map<String, String> PROJECT_KEYS = ordered(
       "name", "Package name. Letters, digits, `-`, `_` and `.`, starting with a letter, digit or `_`.",
@@ -134,6 +143,7 @@ public final class UmsWords {
         PROFILE_NAMES, PROFILE_KEYS, DEPENDENCY_SCOPES, COMMAND_KINDS, COMMAND_BODY)) {
       names.addAll(table.keySet());
     }
+    names.addAll(TOP_LEVEL_DECLARATIONS.keySet());
     names.add(ARGS_MARKER);
     return Set.copyOf(names);
   }

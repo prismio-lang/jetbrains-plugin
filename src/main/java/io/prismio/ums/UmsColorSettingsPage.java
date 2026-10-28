@@ -18,7 +18,10 @@ public final class UmsColorSettingsPage implements ColorSettingsPage {
       new AttributesDescriptor("Property key", UmsSyntaxHighlighter.KEY),
       new AttributesDescriptor("Declaration call", UmsSyntaxHighlighter.CALL),
       new AttributesDescriptor("Identifier", UmsSyntaxHighlighter.IDENTIFIER),
+      new AttributesDescriptor("Constant or enum name", UmsSyntaxHighlighter.CONSTANT),
       new AttributesDescriptor("String", UmsSyntaxHighlighter.STRING),
+      new AttributesDescriptor("String interpolation", UmsSyntaxHighlighter.INTERPOLATION),
+      new AttributesDescriptor("String dollar escape", UmsSyntaxHighlighter.ESCAPE),
       new AttributesDescriptor("Number", UmsSyntaxHighlighter.NUMBER),
       new AttributesDescriptor("Boolean", UmsSyntaxHighlighter.BOOLEAN),
       new AttributesDescriptor("Comment", UmsSyntaxHighlighter.COMMENT),
@@ -51,10 +54,15 @@ public final class UmsColorSettingsPage implements ColorSettingsPage {
             <key>host</key> = ".prismio/build/debug/prismio"
         }
 
+        <keyword>const</keyword> <constant>MAJOR</constant> = 0
+        <keyword>const</keyword> <constant>VERSION</constant> = "<interp>${MAJOR}</interp>.1.0"
+        <keyword>enum</keyword> <constant>Channel</constant> { STABLE = "stable", BETA }
+
         project {
-            <key>name</key> = "app"
-            <key>version</key> = "0.1.0"
+            <key>name</key> = "app-<interp>${Channel.BETA}</interp>"
+            <key>version</key> = <constant>VERSION</constant>
             <key>prismio</key> = "0.1.0"
+            <key>description</key> = "costs <escape>$$</escape>5"
             <key>authors</key> = ["Ada Lovelace"]
         }
 
@@ -90,7 +98,11 @@ public final class UmsColorSettingsPage implements ColorSettingsPage {
     return Map.of(
         "key", UmsSyntaxHighlighter.KEY,
         "call", UmsSyntaxHighlighter.CALL,
-        "boolean", UmsSyntaxHighlighter.BOOLEAN);
+        "boolean", UmsSyntaxHighlighter.BOOLEAN,
+        "keyword", UmsSyntaxHighlighter.BLOCK,
+        "constant", UmsSyntaxHighlighter.CONSTANT,
+        "interp", UmsSyntaxHighlighter.INTERPOLATION,
+        "escape", UmsSyntaxHighlighter.ESCAPE);
   }
 
   @Override

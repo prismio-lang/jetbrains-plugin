@@ -30,6 +30,10 @@ public final class UmsAnnotator implements Annotator {
 
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
+    if (element.getNode() != null && UmsTypes.STRING.equals(element.getNode().getElementType())) {
+      annotateInterpolations(element, holder);
+      return;
+    }
     UmsContext context = UmsContext.of(element);
     if (context == null) {
       return;
@@ -41,6 +45,41 @@ public final class UmsAnnotator implements Annotator {
           .range(element)
           .textAttributes(colour)
           .create();
+    }
+  }
+
+  /**
+   * {@code ${NAME}} and {@code $$} inside a string, as {@code umsResolveConstants} reads them: a {@code $}
+   * followed by anything else is plain text and is left alone. An interpolation that is never closed is
+   * the compiler's to report ({@code UMS1208}).
+   */
+  private static void annotateInterpolations(PsiElement string, AnnotationHolder holder) {
+    String text = string.getText();
+    int base = string.getTextRange().getStartOffset();
+    for (int i = 0; i + 1 < text.length(); i++) {
+      if (text.charAt(i) != '$') {
+        continue;
+      }
+      char next = text.charAt(i + 1);
+      int end = -1;
+      TextAttributesKey key = null;
+      if (next == '$') {
+        end = i + 2;
+        key = UmsSyntaxHighlighter.ESCAPE;
+      } else if (next == '{') {
+        int close = text.indexOf('}', i + 2);
+        if (close >= 0) {
+          end = close + 1;
+          key = UmsSyntaxHighlighter.INTERPOLATION;
+        }
+      }
+      if (key != null) {
+        holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
+            .range(new com.intellij.openapi.util.TextRange(base + i, base + end))
+            .textAttributes(key)
+            .create();
+        i = end - 1;
+      }
     }
   }
 
@@ -56,6 +95,8 @@ public final class UmsAnnotator implements Annotator {
       case KEY -> UmsSyntaxHighlighter.KEY;
       case CALL -> UmsSyntaxHighlighter.CALL;
       case ARGS -> UmsSyntaxHighlighter.BOOLEAN;
+      case KEYWORD -> UmsSyntaxHighlighter.BLOCK;
+      case DECLARATION, REFERENCE -> UmsSyntaxHighlighter.CONSTANT;
       case VALUE -> null;
     };
   }

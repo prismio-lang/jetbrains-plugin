@@ -11,8 +11,8 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>Small on purpose. A manifest has identifiers, three literal kinds, two
  * comment spellings and nine pieces of punctuation, and that is the whole
- * grammar — everything that looks like a keyword is an identifier the semantic
- * layer interprets.
+ * grammar — everything that looks like a keyword, {@code const} and {@code enum}
+ * included, is an identifier the semantic layer interprets.
  */
 public final class UmsLexer extends LexerBase {
 
@@ -108,7 +108,7 @@ public final class UmsLexer extends LexerBase {
     }
     if (isIdentifierStart(c)) {
       tokenEnd = tokenStart;
-      while (tokenEnd < bufferEnd && isIdentifierPart(buffer.charAt(tokenEnd))) {
+      while (tokenEnd < bufferEnd && (isIdentifierPart(buffer.charAt(tokenEnd)) || joinsEnumVariant(tokenEnd))) {
         tokenEnd++;
       }
       String text = buffer.subSequence(tokenStart, tokenEnd).toString();
@@ -165,6 +165,14 @@ public final class UmsLexer extends LexerBase {
     };
   }
 
+  /**
+   * A {@code .} followed by a letter continues an identifier, so {@code Channel.BETA} is one token, as in
+   * {@code lexIdentifier}: the name of an enum variant. Anything else leaves the {@code .} as a bad character.
+   */
+  private boolean joinsEnumVariant(int at) {
+    return buffer.charAt(at) == '.' && at + 1 < bufferEnd && isIdentifierStart(buffer.charAt(at + 1));
+  }
+
   private static boolean isWhitespace(char c) {
     return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f';
   }
@@ -182,7 +190,8 @@ public final class UmsLexer extends LexerBase {
     // `ums/parser/lexer.psm`. A `-` continues an identifier but cannot start one,
     // which is what keeps `-1` an integer. Dotted names such as a target called
     // `app.cli` are string *arguments*, not identifiers, so `.` is deliberately
-    // absent.
+    // absent -- apart from the `Enum.VARIANT` join, which needs a letter after it and is
+    // handled where the token is scanned.
     return isIdentifierStart(c) || isDigit(c) || c == '-';
   }
 }

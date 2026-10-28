@@ -36,6 +36,27 @@ public class UmsLexerTest extends TestCase {
         types("project { }"));
   }
 
+  public void testADotJoinsAnEnumVariantIntoOneIdentifier() {
+    // `lexIdentifier` continues over a `.` that a letter follows: `Channel.BETA` is the name of a variant.
+    assertEquals(List.of(UmsTypes.IDENTIFIER), types("Channel.BETA"));
+    assertEquals(List.of(UmsTypes.IDENTIFIER, UmsTypes.EQUAL, UmsTypes.IDENTIFIER),
+        types("CHANNEL = Channel.BETA"));
+    // A dot with no letter after it is not part of the name.
+    assertEquals(List.of(UmsTypes.IDENTIFIER, TokenType.BAD_CHARACTER), types("Channel."));
+    assertEquals(List.of(UmsTypes.IDENTIFIER, TokenType.BAD_CHARACTER, UmsTypes.INTEGER), types("a.1"));
+  }
+
+  public void testConstAndEnumAreIdentifiersToTheLexer() {
+    assertEquals(List.of(UmsTypes.IDENTIFIER, UmsTypes.IDENTIFIER, UmsTypes.EQUAL, UmsTypes.INTEGER),
+        types("const MAJOR = 3"));
+    assertEquals(List.of(UmsTypes.IDENTIFIER, UmsTypes.IDENTIFIER, UmsTypes.LEFT_BRACE, UmsTypes.IDENTIFIER,
+        UmsTypes.RIGHT_BRACE), types("enum Channel { STABLE }"));
+  }
+
+  public void testAnInterpolatedStringIsOneStringToken() {
+    assertEquals(List.of(UmsTypes.STRING), types("\"${MAJOR}.2.0 costs $$5\""));
+  }
+
   public void testBooleansAreValuesRatherThanNames() {
     assertEquals(List.of(UmsTypes.BOOLEAN), types("true"));
     assertEquals(List.of(UmsTypes.BOOLEAN), types("false"));

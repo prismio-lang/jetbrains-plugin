@@ -53,6 +53,65 @@ public class UmsContextTest extends BasePlatformTestCase {
     return UmsContext.pathAt(file, brace + 1);
   }
 
+  private static final String DECLARING = """
+      const MAJOR = 3
+      const VERSION = "${MAJOR}.4.5"
+      enum Channel { STABLE = "stable", BETA }
+
+      project {
+          name = "app"
+          version = VERSION
+          description = Channel.BETA
+          prismio = "0.1.0"
+      }
+      """;
+
+  private UmsContext contextOf(String text, String word, int occurrence) {
+    PsiFile file = myFixture.configureByText(UmsFileType.INSTANCE, text);
+    int from = -1;
+    for (int i = 0; i <= occurrence; i++) {
+      from = text.indexOf(word, from + 1);
+    }
+    var leaf = file.findElementAt(from);
+    assertNotNull(leaf);
+    return UmsContext.of(leaf);
+  }
+
+  public void testConstAndEnumStartADeclaration() {
+    assertEquals(UmsContext.Role.KEYWORD, contextOf(DECLARING, "const", 0).role);
+    assertEquals(UmsContext.Role.KEYWORD, contextOf(DECLARING, "enum", 0).role);
+    assertTrue(contextOf(DECLARING, "const", 0).isRecognised());
+  }
+
+  public void testTheNameAfterTheKeywordIsADeclaration() {
+    assertEquals(UmsContext.Role.DECLARATION, contextOf(DECLARING, "MAJOR", 0).role);
+    assertEquals(UmsContext.Role.DECLARATION, contextOf(DECLARING, "VERSION", 0).role);
+    assertEquals(UmsContext.Role.DECLARATION, contextOf(DECLARING, "Channel", 0).role);
+    assertTrue(contextOf(DECLARING, "MAJOR", 0).isRecognised());
+  }
+
+  public void testAUseOfADeclaredNameIsAReference() {
+    assertEquals(UmsContext.Role.REFERENCE, contextOf(DECLARING, "VERSION", 1).role);
+    assertEquals(UmsContext.Role.REFERENCE, contextOf(DECLARING, "Channel.BETA", 0).role);
+  }
+
+  public void testAnUndeclaredNameStaysAnOrdinaryValue() {
+    String text = "project { version = VERSION }";
+    assertEquals(UmsContext.Role.VALUE, contextOf(text, "VERSION", 0).role);
+    // `const` with no `NAME =` after it is not a declaration.
+    assertEquals(UmsContext.Role.VALUE, contextOf("project { version = const }", "const", 0).role);
+  }
+
+  public void testADeclarationDoesNotChangeWhatTheBlocksAccept() {
+    PsiFile file = myFixture.configureByText(UmsFileType.INSTANCE, DECLARING);
+    int brace = DECLARING.indexOf("project {") + "project {".length();
+    assertEquals(List.of("project"), UmsContext.pathAt(file, brace + 1));
+    // The declarations are not blocks, so the top level still offers exactly the blocks.
+    assertEquals(UmsWords.TOP_LEVEL_BLOCKS, UmsContext.completionsFor(List.of()));
+    assertTrue(UmsWords.TOP_LEVEL_DECLARATIONS.containsKey("const"));
+    assertTrue(UmsWords.ALL_KNOWN.contains("enum"));
+  }
+
   public void testTopLevelOffersTheBlockNames() {
     PsiFile file = manifest();
     assertEquals(List.of(), UmsContext.pathAt(file, 0));

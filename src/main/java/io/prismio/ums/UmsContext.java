@@ -30,6 +30,12 @@ public final class UmsContext {
     CALL,
     /** The `args` marker inside a command step. */
     ARGS,
+    /** The `const` or `enum` that starts a declaration: `const NAME = ...`, `enum Name { ... }`. */
+    KEYWORD,
+    /** The name a `const` or `enum` declares. */
+    DECLARATION,
+    /** A use of a declared name: `VERSION`, or `Channel.BETA` for a declared enum. */
+    REFERENCE,
     /** An identifier in value position, or one nothing recognises. */
     VALUE
   }
@@ -69,7 +75,8 @@ public final class UmsContext {
 
   /** The identifiers valid at this position, or null when the position is unmodelled. */
   public Map<String, String> expectedHere() {
-    if (role == Role.VALUE || role == Role.ARGS) {
+    if (role == Role.VALUE || role == Role.ARGS || role == Role.KEYWORD
+        || role == Role.DECLARATION || role == Role.REFERENCE) {
       return null;
     }
     return completionsFor(path);
@@ -228,8 +235,14 @@ public final class UmsContext {
   private static Role roleOf(List<Token> tokens, int index, List<String> path) {
     String text = tokens.get(index).text;
     Token next = at(tokens, index + 1);
+    if (path.isEmpty() && startsDeclaration(tokens, index)) {
+      return Role.KEYWORD;
+    }
+    if (path.isEmpty() && startsDeclaration(tokens, index - 1)) {
+      return Role.DECLARATION;
+    }
     if (next == null) {
-      return Role.VALUE;
+      return isDeclared(tokens, text) ? Role.REFERENCE : Role.VALUE;
     }
 
     if (UmsTypes.EQUAL.equals(next.type)) {
@@ -249,7 +262,43 @@ public final class UmsContext {
     if (UmsWords.ARGS_MARKER.equals(text) && !path.isEmpty()) {
       return Role.ARGS;
     }
-    return Role.VALUE;
+    return isDeclared(tokens, text) ? Role.REFERENCE : Role.VALUE;
+  }
+
+  /**
+   * Whether the identifier at {@code index} is the {@code const} or {@code enum} of a declaration:
+   * {@code const NAME =} or {@code enum Name} and an opening brace. The shape is checked, not just the word, because
+   * {@code const} alone is an ordinary identifier to the lexer.
+   */
+  private static boolean startsDeclaration(List<Token> tokens, int index) {
+    Token word = at(tokens, index);
+    Token name = at(tokens, index + 1);
+    Token after = at(tokens, index + 2);
+    if (word == null || name == null || after == null || !UmsTypes.IDENTIFIER.equals(word.type)
+        || !UmsTypes.IDENTIFIER.equals(name.type)) {
+      return false;
+    }
+    if (word.text.equals("const")) {
+      return UmsTypes.EQUAL.equals(after.type);
+    }
+    return word.text.equals("enum") && UmsTypes.LEFT_BRACE.equals(after.type);
+  }
+
+  /**
+   * Whether {@code text} names a constant declared somewhere in the manifest, or is {@code Enum.VARIANT}
+   * of a declared enum. Position-free on purpose: a use may come before its declaration.
+   */
+  private static boolean isDeclared(List<Token> tokens, String text) {
+    int dot = text.indexOf('.');
+    String wanted = dot < 0 ? text : text.substring(0, dot);
+    String keyword = dot < 0 ? "const" : "enum";
+    for (int i = 0; i + 1 < tokens.size(); i++) {
+      if (tokens.get(i).text.equals(keyword) && startsDeclaration(tokens, i)
+          && tokens.get(i + 1).text.equals(wanted)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /** The block names enclosing the token at {@code index}, outermost first. */
