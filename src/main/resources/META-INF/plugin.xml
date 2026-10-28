@@ -199,10 +199,7 @@
                 language="Prismio"
                 implementationClass="io.prismio.navigation.PrismioFindUsagesProvider"/>
 
-        <!-- Documentation Provider -->
-        <lang.documentationProvider
-                language="Prismio"
-                implementationClass="io.prismio.documentation.PrismioDocumentationProvider"/>
+        <!-- Hover and Quick Documentation come from the language server (io.prismio.lsp.PrismioLspFeatures). -->
 
         <!-- Toggle Rendered View for /** documentation comments -->
         <platform.backend.documentation.inlineDocumentationProvider

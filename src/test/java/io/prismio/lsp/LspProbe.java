@@ -166,6 +166,58 @@ final class LspProbe implements AutoCloseable {
     return found;
   }
 
+  /** Opens {@code file} with {@code text} and waits until the server has published its diagnostics (so analysis is done). */
+  boolean open(Path file, String text, long seconds) throws IOException, InterruptedException {
+    String uri = file.toUri().toString();
+    JsonObject item = new JsonObject();
+    item.addProperty("uri", uri);
+    item.addProperty("languageId", "prismio");
+    item.addProperty("version", 1);
+    item.addProperty("text", text);
+    JsonObject params = new JsonObject();
+    params.add("textDocument", item);
+    notify("textDocument/didOpen", params);
+    return waitFor(m -> "textDocument/publishDiagnostics".equals(stringOf(m, "method"))
+        && uri.equals(m.getAsJsonObject("params").get("uri").getAsString()), seconds) != null;
+  }
+
+  void closeDocument(Path file) throws IOException {
+    JsonObject close = new JsonObject();
+    JsonObject identifier = new JsonObject();
+    identifier.addProperty("uri", file.toUri().toString());
+    close.add("textDocument", identifier);
+    notify("textDocument/didClose", close);
+  }
+
+  /** A request about {@code file} at a zero-based line and UTF-16 column; the reply's {@code result}, or null. */
+  JsonElement at(String method, Path file, int line, int character) throws IOException, InterruptedException {
+    JsonObject params = new JsonObject();
+    JsonObject document = new JsonObject();
+    document.addProperty("uri", file.toUri().toString());
+    params.add("textDocument", document);
+    JsonObject position = new JsonObject();
+    position.addProperty("line", line);
+    position.addProperty("character", character);
+    params.add("position", position);
+    if (method.equals("textDocument/references")) {
+      JsonObject context = new JsonObject();
+      context.addProperty("includeDeclaration", true);
+      params.add("context", context);
+    }
+    JsonObject reply = request(method, params, 60);
+    return reply == null || !reply.has("result") ? null : reply.get("result");
+  }
+
+  /** A request that names only the document. */
+  JsonElement ofDocument(String method, Path file, JsonObject extra) throws IOException, InterruptedException {
+    JsonObject params = extra == null ? new JsonObject() : extra;
+    JsonObject document = new JsonObject();
+    document.addProperty("uri", file.toUri().toString());
+    params.add("textDocument", document);
+    JsonObject reply = request(method, params, 60);
+    return reply == null || !reply.has("result") ? null : reply.get("result");
+  }
+
   private static String stringOf(JsonObject object, String key) {
     return object.has(key) && object.get(key).isJsonPrimitive() ? object.get(key).getAsString() : "";
   }
