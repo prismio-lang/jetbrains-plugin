@@ -85,8 +85,13 @@ public final class PrismioSettingsConfigurable implements SearchableConfigurable
   @Override
   public void apply() {
     PrismioProjectSettings.State state = PrismioProjectSettings.getInstance(project).getState();
+    boolean changed = !compilerPathField.getText().trim().equals(state.compilerPath)
+        || useServerBox.isSelected() != state.useLanguageServer;
     state.compilerPath = compilerPathField.getText().trim();
     state.useLanguageServer = useServerBox.isSelected();
+    if (changed) {
+      project.getMessageBus().syncPublisher(PrismioSettingsListener.TOPIC).toolchainSettingsChanged();
+    }
   }
 
   @Override

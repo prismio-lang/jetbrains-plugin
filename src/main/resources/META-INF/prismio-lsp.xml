@@ -2,4 +2,7 @@
     <extensions defaultExtensionNs="com.intellij">
         <platform.lsp.serverSupportProvider implementation="io.prismio.lsp.PrismioLspServerSupportProvider"/>
     </extensions>
+    <projectListeners>
+        <listener class="io.prismio.lsp.PrismioLspSettingsListener" topic="io.prismio.settings.PrismioSettingsListener"/>
+    </projectListeners>
 </idea-plugin>

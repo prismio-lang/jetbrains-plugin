@@ -41,6 +41,10 @@ final class PrismioLspServerDescriptor extends ProjectWideLspServerDescriptor {
       throw new ExecutionException("No Prismio compiler is configured (Settings | Languages & Frameworks | Prismio)");
     }
     GeneralCommandLine line = new GeneralCommandLine(compiler.toString(), "lsp");
+    // Inside a project that names its own compiler, a launcher named `prismio` hands the command to that
+    // project's host, which may be any generation and may not have a server. The editor wants the
+    // toolchain it was pointed at, whatever folder is open.
+    line.withEnvironment("PRISMIO_INTERNAL_HOSTED", "1");
     String base = getProject().getBasePath();
     if (base != null) {
       line.withWorkingDirectory(Path.of(base));
