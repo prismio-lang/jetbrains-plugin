@@ -19,7 +19,7 @@ public interface PrismioTokenSets {
   TokenSet OPERATORS = TokenSet.create(PrismioTypes.ARITHMETIC_OP, PrismioTypes.RELATIONAL_OP,
       PrismioTypes.ASSIGNMENT_OP, PrismioTypes.LOGICAL_OP, PrismioTypes.BITWISE_OP,
       PrismioTypes.SHIFT_OP, PrismioTypes.NEGATION, PrismioTypes.ARROW, PrismioTypes.FAT_ARROW,
-      PrismioTypes.RANGE);
+      PrismioTypes.RANGE, PrismioTypes.ELLIPSIS);
 
   TokenSet SEPARATORS = TokenSet.create(PrismioTypes.LPAREN, PrismioTypes.RPAREN,
       PrismioTypes.LBRACE, PrismioTypes.RBRACE, PrismioTypes.LBRACKET, PrismioTypes.RBRACKET,

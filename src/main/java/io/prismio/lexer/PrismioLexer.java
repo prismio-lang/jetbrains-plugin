@@ -121,6 +121,10 @@ public final class PrismioLexer extends LexerBase {
     // Between the operator and separator checks: see the class comment. `..<` is
     // one token, as the compiler scans it; read as `..` and a `<`, the `<` is a
     // comparison to everything downstream, and Reformat Code spaced `0..< n`.
+    if (c == '.' && peekIs(1, '.') && peekIs(2, '.')) {
+      tokenEnd = tokenStart + 3;
+      return PrismioTypes.ELLIPSIS;
+    }
     if (c == '.' && peekIs(1, '.')) {
       tokenEnd = peekIs(2, '<') ? tokenStart + 3 : tokenStart + 2;
       return PrismioTypes.RANGE;

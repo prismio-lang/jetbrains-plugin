@@ -190,7 +190,7 @@ public final class PrismioSyntaxHighlighter extends SyntaxHighlighterBase {
         || tokenType.equals(PrismioTypes.LOGICAL_OP) || tokenType.equals(PrismioTypes.BITWISE_OP)
         || tokenType.equals(PrismioTypes.SHIFT_OP) || tokenType.equals(PrismioTypes.NEGATION)
         || tokenType.equals(PrismioTypes.ARROW) || tokenType.equals(PrismioTypes.FAT_ARROW)
-        || tokenType.equals(PrismioTypes.RANGE)) {
+        || tokenType.equals(PrismioTypes.RANGE) || tokenType.equals(PrismioTypes.ELLIPSIS)) {
       return OPERATOR_KEYS;
     }
 

@@ -64,6 +64,8 @@ public interface PrismioTypes {
   IElementType ARROW = new PrismioTokenType("ARROW");
   IElementType FAT_ARROW = new PrismioTokenType("FAT_ARROW");
   IElementType RANGE = new PrismioTokenType("RANGE");
+  /** {@code ...}, the mark of a parameter pack ({@code ...args: Ts}); one token, as the compiler scans it. */
+  IElementType ELLIPSIS = new PrismioTokenType("ELLIPSIS");
   IElementType RELATIONAL_OP = new PrismioTokenType("RELATIONAL_OP");
   IElementType ASSIGNMENT_OP = new PrismioTokenType("ASSIGNMENT_OP");
   IElementType LOGICAL_OP = new PrismioTokenType("LOGICAL_OP");

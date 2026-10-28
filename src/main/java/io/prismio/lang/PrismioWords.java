@@ -101,12 +101,12 @@ public final class PrismioWords {
       "U8", "U16", "U32", "U64", "Usize",
       "F16", "F32", "F64", "F128", "BF16");
 
-  /** Generic types the standard library ships; not known to the compiler itself. */
+  /**
+   * Generic types the standard library ships, coloured as types. {@code dump-tokens} does not list them (they are
+   * declarations of {@code std/}, not of the lexer), so this is the one table the token test cannot hold; the
+   * language server's semantic tokens are the exact answer. {@code Vec} and {@code Array} are the collections a
+   * program writes; {@code List} is the compiler's internal name for a {@code Vec} and stays so that old code colours.
+   */
   public static final Set<String> STDLIB_TYPES = Set.of(
-      "List", "Map", "Result", "Box", "Task", "Slice", "DataView", "Chan");
-
-  /** Modules resolvable as {@code import std.<leaf>}; the files in {@code std/}. */
-  public static final Set<String> STD_MODULES = Set.of(
-      "io", "string", "list", "map", "option", "fs", "process",
-      "display", "eq", "ord", "key", "copy", "iter");
+      "Vec", "Array", "List", "Map", "Result", "Box", "Task", "Future", "Slice", "DataView", "Chan", "Channel");
 }
