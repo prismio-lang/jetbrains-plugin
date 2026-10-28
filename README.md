@@ -89,7 +89,7 @@ You need JDK 26. Gradle comes with the repository.
 
 ```bash
 git clone https://github.com/prismio-lang/jetbrains-plugin.git
-cd intellij-plugin
+cd jetbrains-plugin
 ./gradlew buildPlugin   # the zip lands in build/distributions/
 ./gradlew runIde        # opens a test IDE with the plugin installed
 ```

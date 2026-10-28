@@ -10,7 +10,7 @@ downloads the IDE it compiles against.
 
 ```bash
 git clone https://github.com/prismio-lang/jetbrains-plugin.git
-cd intellij-plugin
+cd jetbrains-plugin
 ./gradlew buildPlugin   # compile and package
 ./gradlew runIde        # open a test IDE with the plugin installed
 ```
