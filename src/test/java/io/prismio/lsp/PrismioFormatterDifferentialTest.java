@@ -46,6 +46,8 @@ public class PrismioFormatterDifferentialTest extends BasePlatformTestCase {
       if (process.waitFor() != 0 || formatted.isEmpty()) {
         continue;
       }
+      // The fixture reads {@code <caret>} as a marker and removes it, so a file that writes one in a comment is compared without it.
+      formatted = formatted.replace("<caret>", "");
       PsiFile psi = myFixture.configureByText(PrismioFileType.INSTANCE, formatted);
       WriteCommandAction.runWriteCommandAction(getProject(), (Runnable) () ->
           CodeStyleManager.getInstance(getProject()).reformat(psi));
@@ -53,8 +55,14 @@ public class PrismioFormatterDifferentialTest extends BasePlatformTestCase {
       String relative = root.relativize(file).toString();
       if (!tokens(formatted).equals(tokens(psi.getText()))) {
         corrupted.add(relative);
+        Files.createDirectories(Path.of("build/differential"));
+        Files.writeString(Path.of("build/differential/" + file.getFileName() + ".before"), formatted);
+        Files.writeString(Path.of("build/differential/" + file.getFileName() + ".after"), psi.getText());
       } else if (!formatted.equals(psi.getText())) {
         changed.add(relative);
+        Files.createDirectories(Path.of("build/differential"));
+        Files.writeString(Path.of("build/differential/" + file.getFileName() + ".before"), formatted);
+        Files.writeString(Path.of("build/differential/" + file.getFileName() + ".after"), psi.getText());
       }
     }
     Files.createDirectories(Path.of("build/differential"));

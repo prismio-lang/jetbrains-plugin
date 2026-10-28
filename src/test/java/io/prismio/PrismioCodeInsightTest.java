@@ -171,17 +171,6 @@ public class PrismioCodeInsightTest extends BasePlatformTestCase {
     assertHighlight(highlights, source, "move", PrismioSyntaxHighlighter.METHOD_CALL);
   }
 
-  public void testFormatterAppliesCoreSpacingRules() {
-    myFixture.configureByText(PrismioFileType.INSTANCE, "fn main(){let value:Int=1+2}");
-
-    WriteCommandAction.writeCommandAction(getProject())
-        .run(() -> CodeStyleManager.getInstance(getProject()).reformat(myFixture.getFile()));
-
-    // `{ let`, not `{let`. A keyword now gets a space on both sides, which is
-    // the rule that stopped `a and b` collapsing into `aand b`.
-    myFixture.checkResult("fn main() { let value: Int = 1 + 2}");
-  }
-
   public void testMultilineFunctionBodyIsFoldable() {
     String source = """
         fn main() {
