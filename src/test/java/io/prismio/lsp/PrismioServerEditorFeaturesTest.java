@@ -91,6 +91,43 @@ public class PrismioServerEditorFeaturesTest extends TestCase {
     }
   }
 
+  /**
+   * The colour of each name comes from what it refers to: a parameter, a local, a field, a function, a type. The
+   * legend the server declares is what the plugin's keys are chosen from, so the test reads the legend as well.
+   */
+  public void testSemanticTokensClassifyNames() throws Exception {
+    try (ServerCorpus corpus = ServerCorpus.start()) {
+      if (corpus == null) {
+        return;
+      }
+      Path file = corpus.root.resolve("tests/semantic_tokens_guard.psm");
+      assertTrue("the server analysed the document", corpus.probe.open(file, SOURCE, 90));
+      JsonElement answer = corpus.probe.ofDocument("textDocument/semanticTokens/full", file, new JsonObject());
+      JsonArray data = answer.getAsJsonObject().getAsJsonArray("data");
+      assertTrue("the server sent tokens", data.size() >= 5 && data.size() % 5 == 0);
+
+      List<String> legend = new ArrayList<>(List.of("namespace", "type", "enum", "interface", "struct", "typeParameter", "parameter",
+          "variable", "property", "enumMember", "function", "method"));
+      String[] lines = SOURCE.split("\n", -1);
+      List<String> found = new ArrayList<>();
+      int line = 0;
+      int column = 0;
+      for (int i = 0; i < data.size(); i += 5) {
+        int deltaLine = data.get(i).getAsInt();
+        line += deltaLine;
+        column = deltaLine == 0 ? column + data.get(i + 1).getAsInt() : data.get(i + 1).getAsInt();
+        String text = lines[line].substring(column, column + data.get(i + 2).getAsInt());
+        found.add(text + ":" + legend.get(data.get(i + 3).getAsInt()));
+      }
+      assertTrue(found.toString(), found.contains("Tree:struct"));
+      assertTrue(found.toString(), found.contains("grow:function"));
+      assertTrue(found.toString(), found.contains("k:parameter"));
+      assertTrue(found.toString(), found.contains("v:property"));
+      assertTrue(found.toString(), found.contains("items:variable"));
+      assertTrue(found.toString(), found.contains("push:method"));
+    }
+  }
+
   /** Signature help at {@code skip} characters into the first occurrence of {@code needle}, or at its end when skip is 0. */
   private static JsonObject helpAfter(ServerCorpus corpus, Path file, String text, String needle, int skip) throws Exception {
     int offset = text.indexOf(needle) + (skip == 0 ? needle.length() : skip);

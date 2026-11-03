@@ -13,6 +13,13 @@ configurations, the project wizard, the manifest's colours).
 
 ### Added
 
+- **Names are coloured by what they refer to.** The server's semantic tokens are on for a Prismio file (`semanticTokens` in
+  `PrismioLspFeatures.SERVED`; the platform asks only for plain text unless the plugin says otherwise). The server's legend is
+  mapped onto the plugin's own colour keys, so the colour scheme page and a user's scheme apply: a function declaration and a
+  call, a method, a parameter, a local, a constant (`readonly`), a field, an enum variant, a struct, an enum, a trait, a type
+  parameter and an import path. The lexer still colours first and keeps `STDLIB_TYPES`; the server's answer replaces it.
+  `PrismioLspFeaturesTest` holds the switch and the mapping; `PrismioServerEditorFeaturesTest` decodes the server's tokens.
+  Seen in `runIde` (2026-11-03): fields, enum variants, declarations, calls and a reassigned local each in their own colour.
 - **`build.ums` with `const`, `enum` and `${}`.** The manifest lexer joins `Channel.BETA` into one identifier (a `.` that a
   letter follows, as in the compiler's `lexIdentifier`). `const` and `enum` are coloured as keywords where a declaration
   starts (`const NAME =`, `enum Name {`, shape checked, so a bare `const` stays a name), the declared name and each use of it

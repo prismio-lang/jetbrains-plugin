@@ -76,11 +76,15 @@ import com.intellij.platform.lsp.api.customization.LspTypeHierarchySupport;
 import com.intellij.platform.lsp.api.customization.LspWorkspaceSymbolCustomizer;
 import com.intellij.platform.lsp.api.customization.LspWorkspaceSymbolDisabled;
 import com.intellij.platform.lsp.api.customization.LspWorkspaceSymbolSupport;
+import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import io.prismio.highlighter.PrismioSyntaxHighlighter;
 import io.prismio.psi.PrismioFile;
+import java.util.List;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Which of the server's features the editor uses.
@@ -104,9 +108,32 @@ final class PrismioLspFeatures {
 
   /** The features the server answers, by the platform's name for them. */
   static final Set<String> SERVED = Set.of("diagnostics", "codeActions", "hover", "inlayHint", "signatureHelp", "completion", "formatting", "goToDefinition",
-      "goToTypeDefinition", "findReferences", "rename", "documentSymbol", "workspaceSymbol", "documentHighlights");
+      "goToTypeDefinition", "findReferences", "rename", "documentSymbol", "workspaceSymbol", "documentHighlights", "semanticTokens");
 
   private PrismioLspFeatures() {}
+
+  /**
+   * The colour of a name the server classified, by the plugin's own keys so that the colour scheme page and a user's
+   * scheme apply to it. The legend is {@code tokensLegend} in the compiler's {@code lsp/tokens.psm}; a type it adds
+   * that is not here falls back to the platform's default for the name, and nothing is coloured wrongly by it.
+   */
+  static @Nullable TextAttributesKey semanticKey(@NotNull String type, @NotNull List<String> modifiers) {
+    boolean declaration = modifiers.contains("declaration");
+    return switch (type) {
+      case "namespace" -> PrismioSyntaxHighlighter.IMPORT_PATH;
+      case "type", "typeParameter" -> PrismioSyntaxHighlighter.TYPE_REFERENCE;
+      case "enum" -> PrismioSyntaxHighlighter.ENUM_NAME;
+      case "interface" -> PrismioSyntaxHighlighter.TRAIT_NAME;
+      case "struct" -> PrismioSyntaxHighlighter.STRUCT_NAME;
+      case "parameter" -> PrismioSyntaxHighlighter.PARAMETER;
+      case "variable" -> modifiers.contains("readonly") ? PrismioSyntaxHighlighter.CONSTANT : PrismioSyntaxHighlighter.LOCAL_VARIABLE;
+      case "property" -> PrismioSyntaxHighlighter.FIELD;
+      case "enumMember" -> PrismioSyntaxHighlighter.ENUM_VARIANT;
+      case "function" -> declaration ? PrismioSyntaxHighlighter.FUNCTION_DECLARATION : PrismioSyntaxHighlighter.FUNCTION_CALL;
+      case "method" -> declaration ? PrismioSyntaxHighlighter.FUNCTION_DECLARATION : PrismioSyntaxHighlighter.METHOD_CALL;
+      default -> null;
+    };
+  }
 
   static boolean served(@NotNull String feature) {
     return SERVED.contains(feature);
@@ -136,7 +163,19 @@ final class PrismioLspFeatures {
 
       @Override
       public @NotNull LspSemanticTokensCustomizer getSemanticTokensCustomizer() {
-        return served("semanticTokens") ? new LspSemanticTokensSupport() : LspSemanticTokensDisabled.INSTANCE;
+        return served("semanticTokens") ? new LspSemanticTokensSupport() {
+          @Override
+          public boolean shouldAskServerForSemanticTokens(@NotNull PsiFile psiFile) {
+            // The platform's default is plain text only, as for rename and highlights.
+            return psiFile instanceof PrismioFile;
+          }
+
+          @Override
+          public @Nullable TextAttributesKey getTextAttributesKey(@NotNull String tokenType, @NotNull List<String> modifiers) {
+            TextAttributesKey key = semanticKey(tokenType, modifiers);
+            return key != null ? key : super.getTextAttributesKey(tokenType, modifiers);
+          }
+        } : LspSemanticTokensDisabled.INSTANCE;
       }
 
       @Override
