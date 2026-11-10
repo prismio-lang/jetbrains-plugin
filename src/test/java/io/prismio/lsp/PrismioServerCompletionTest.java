@@ -112,18 +112,19 @@ public class PrismioServerCompletionTest extends BasePlatformTestCase {
   // ------------------------------------------------------------ freestanding
 
   /**
-   * The builtins a kernel uses are in no module, so the library index cannot offer
-   * them; they come from a table written out from {@code src/common/mem_builtins.psm}.
+   * The compiler's {@code __builtin_*} functions are the library's own vocabulary ({@code std.raw}, {@code std.port}
+   * and {@code std.asm} wrap them): a program that calls one is refused with "is internal to the standard library", so
+   * completion does not offer them to a program. They used to be offered, and a kernel author chose a name the compiler
+   * then rejected.
    */
-  public void testFreestandingBuiltinsAreOffered() {
+  public void testCompilerBuiltinsAreNotOfferedToAProgram() {
     List<String> names = completeAt("""
         fn main() -> Int {
             __builtin_mem_v<caret>
             return 0
         }
         """);
-    assertContainsElements(names, "__builtin_mem_vstore_u32", "__builtin_mem_vload_u8");
-    assertDoesntContain(names, "__builtin_mem_aadd_u32");
+    assertDoesntContain(names, "__builtin_mem_vstore_u32", "__builtin_mem_vload_u8", "__builtin_mem_aadd_u32");
   }
 
   public void testFunctionModifiersAreOfferedAtTopLevel() {

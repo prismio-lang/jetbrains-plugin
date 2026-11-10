@@ -82,7 +82,7 @@ public final class PrismioWords {
       "async", "await", "scope", "join",
       "export", "naked", "section", "align", "repr", "packed",
       "volatile",
-      "codeset", "typelist", "workload", "setup", "measure");
+      "codeset", "typelist", "workload", "setup", "measure", "asm");
 
   /**
    * Built-in types — {@code typeFromSemKey} and {@code typeFromAnnotation} in

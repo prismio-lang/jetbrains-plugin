@@ -11,6 +11,17 @@ The plugin is a client of `prismio lsp` now: the language's own knowledge lives 
 what has to answer before a server can (colours, brackets, typing, indentation) and what is the IDE's own (run
 configurations, the project wizard, the manifest's colours).
 
+### Changed
+
+- **The tests that put the plugin through a checkout take under two minutes, not eighteen.** `PrismioServerCorpusTest`
+  asked the server about every `.psm` it could find, and on one machine that was 1,774 files of which 1,172 were stale copies
+  of the checkout under `.claude/worktrees`; a file there costs a check of the whole program, 1.5 s, where the same file in
+  the checkout costs 0.17 s. The old copies use syntax the compiler has since removed, so the run also failed. It skips
+  `.claude` and `dist` now, and deals the files out to up to four servers that run side by side (one server runs one check
+  at a time). The test went from 1,064 s to 49 s, the whole suite of 182 tests from about 18 minutes to 1 m 45 s.
+- **`testFreestandingBuiltinsAreOffered` is `testCompilerBuiltinsAreNotOfferedToAProgram`.** The compiler refuses a program's
+  call to a `__builtin_*` function ("internal to the standard library"), and the server stopped offering them.
+
 ### Added
 
 - **Names are coloured by what they refer to.** The server's semantic tokens are on for a Prismio file (`semanticTokens` in
