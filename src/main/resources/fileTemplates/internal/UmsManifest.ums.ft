@@ -1,7 +1,7 @@
 project {
     name = "${NAME}"
     version = "0.1.0"
-    prismio = "0.1.0"
+    prismio = "${PRISMIO_VERSION}"
 }
 
 targets {

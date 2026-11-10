@@ -12,10 +12,10 @@ import org.jetbrains.annotations.Nullable;
  * both New Project dialogs: the step IntelliJ IDEA shows and the generator the other IDEs show.
  * Nothing that already exists is overwritten.
  */
-final class PrismioProjectFiles {
+public final class PrismioProjectFiles {
 
-  /** For a manifest written with no compiler's version to ask -- not reachable through Create. */
-  static final String FALLBACK_VERSION = "0.1.0";
+  /** The compiler version a manifest names when no compiler answers {@code --version}: the one this plugin was built with. */
+  public static final String FALLBACK_VERSION = "0.2.0";
 
   private static final String MAIN = """
       import std.io
