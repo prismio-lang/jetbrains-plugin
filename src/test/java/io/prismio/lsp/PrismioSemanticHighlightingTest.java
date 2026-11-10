@@ -65,7 +65,9 @@ public class PrismioSemanticHighlightingTest extends BasePlatformTestCase {
     if (compiler == null) {
       return;
     }
-    PrismioProjectSettings.getInstance(getProject()).getState().compilerPath = compiler;
+    PrismioProjectSettings.State settings = PrismioProjectSettings.getInstance(getProject()).getState();
+    settings.compilerPath = compiler;
+    settings.useLanguageServer = true;
     myFixture.configureByText(PrismioFileType.INSTANCE, SOURCE);
 
     int items = SOURCE.indexOf("items");

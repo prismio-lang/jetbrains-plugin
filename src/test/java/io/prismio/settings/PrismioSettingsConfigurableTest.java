@@ -43,11 +43,18 @@ public class PrismioSettingsConfigurableTest extends BasePlatformTestCase {
         (PrismioSettingsListener) changes::incrementAndGet);
     PrismioProjectSettings.State state = PrismioProjectSettings.getInstance(getProject()).getState();
     page.reset();
-    box.setSelected(!state.useLanguageServer);
+    boolean before = state.useLanguageServer;
+    box.setSelected(!before);
     assertTrue(page.isModified());
     page.apply();
     assertEquals("applying announces the change at once", 1, changes.get());
     assertEquals(box.isSelected(), state.useLanguageServer);
-    state.useLanguageServer = !state.useLanguageServer;
+
+    // Put it back the way a user would, so the server that the change stopped is started again for the tests that follow
+    // in this project.
+    box.setSelected(before);
+    page.apply();
+    assertEquals(2, changes.get());
+    assertEquals(before, state.useLanguageServer);
   }
 }
