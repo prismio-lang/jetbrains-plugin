@@ -99,9 +99,6 @@ public final class PrismioSyntaxHighlighter extends SyntaxHighlighterBase {
   public static final TextAttributesKey LOCAL_VARIABLE = createTextAttributesKey(
       "PRISMIO_LOCAL_VARIABLE", DefaultLanguageHighlighterColors.LOCAL_VARIABLE);
 
-  public static final TextAttributesKey MUTABLE_VARIABLE = createTextAttributesKey(
-      "PRISMIO_MUTABLE_VARIABLE", DefaultLanguageHighlighterColors.REASSIGNED_LOCAL_VARIABLE);
-
   public static final TextAttributesKey CONSTANT =
       createTextAttributesKey("PRISMIO_CONSTANT", DefaultLanguageHighlighterColors.CONSTANT);
 

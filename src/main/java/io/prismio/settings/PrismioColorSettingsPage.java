@@ -41,8 +41,6 @@ public final class PrismioColorSettingsPage implements ColorSettingsPage {
       new AttributesDescriptor("Identifiers//Parameter", PrismioSyntaxHighlighter.PARAMETER),
       new AttributesDescriptor(
           "Identifiers//Local Variable", PrismioSyntaxHighlighter.LOCAL_VARIABLE),
-      new AttributesDescriptor(
-          "Identifiers//Mutable Variable", PrismioSyntaxHighlighter.MUTABLE_VARIABLE),
       new AttributesDescriptor("Identifiers//Constant", PrismioSyntaxHighlighter.CONSTANT),
       new AttributesDescriptor("Identifiers//Field", PrismioSyntaxHighlighter.FIELD),
       new AttributesDescriptor("Identifiers//Struct Name", PrismioSyntaxHighlighter.STRUCT_NAME),
@@ -129,7 +127,7 @@ public final class PrismioColorSettingsPage implements ColorSettingsPage {
 
             public fn <functionDeclaration>classify</functionDeclaration>(<parameter>value</parameter>: Int) -> Bool {
                 let <localVariable>doubled</localVariable> = value * 2
-                let mut <mutableVariable>total</mutableVariable> = 0
+                let mut total = 0
 
                 // `and` and `or` are the logical operators; `..` is a range.
                 for index in 0..doubled {
@@ -170,7 +168,6 @@ public final class PrismioColorSettingsPage implements ColorSettingsPage {
         Map.entry("methodCall", PrismioSyntaxHighlighter.METHOD_CALL),
         Map.entry("parameter", PrismioSyntaxHighlighter.PARAMETER),
         Map.entry("localVariable", PrismioSyntaxHighlighter.LOCAL_VARIABLE),
-        Map.entry("mutableVariable", PrismioSyntaxHighlighter.MUTABLE_VARIABLE),
         Map.entry("constant", PrismioSyntaxHighlighter.CONSTANT),
         Map.entry("field", PrismioSyntaxHighlighter.FIELD),
         Map.entry("structName", PrismioSyntaxHighlighter.STRUCT_NAME),

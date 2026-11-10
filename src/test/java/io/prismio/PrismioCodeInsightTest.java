@@ -1,11 +1,9 @@
 package io.prismio;
 
 import com.intellij.codeInsight.completion.CompletionType;
-import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.generation.actions.CommentByLineCommentAction;
 import com.intellij.lang.folding.FoldingDescriptor;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.platform.backend.documentation.InlineDocumentation;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -13,10 +11,8 @@ import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import io.prismio.debugger.PrismioLineBreakpointType;
 import io.prismio.documentation.PrismioInlineDocumentationProvider;
 import io.prismio.folding.PrismioFoldingBuilder;
-import io.prismio.highlighter.PrismioSyntaxHighlighter;
 import io.prismio.lexer.PrismioLexer;
 import java.util.Collection;
-import java.util.List;
 
 public class PrismioCodeInsightTest extends BasePlatformTestCase {
   public void testLineCommentRoundTrip() {
@@ -143,34 +139,6 @@ public class PrismioCodeInsightTest extends BasePlatformTestCase {
     myFixture.checkResult("\"before /*<caret> after\"");
   }
 
-  public void testSemanticHighlightingUsesDistinctThemeAwareRoles() {
-    String source = """
-        import prismio.io
-        struct Point { x: Int }
-        trait Drawable { fn draw() }
-        enum Direction { North }
-        fn compute(input: Int) {
-          let mut value = 1
-          let MAX_SIZE = 10
-          point.move()
-        }
-        """;
-    myFixture.configureByText(PrismioFileType.INSTANCE, source);
-
-    List<HighlightInfo> highlights = myFixture.doHighlighting();
-
-    assertHighlight(highlights, source, "prismio", PrismioSyntaxHighlighter.IMPORT_PATH);
-    assertHighlight(highlights, source, "Point", PrismioSyntaxHighlighter.STRUCT_NAME);
-    assertHighlight(highlights, source, "x", PrismioSyntaxHighlighter.FIELD);
-    assertHighlight(highlights, source, "Drawable", PrismioSyntaxHighlighter.TRAIT_NAME);
-    assertHighlight(highlights, source, "North", PrismioSyntaxHighlighter.ENUM_VARIANT);
-    assertHighlight(highlights, source, "compute", PrismioSyntaxHighlighter.FUNCTION_DECLARATION);
-    assertHighlight(highlights, source, "input", PrismioSyntaxHighlighter.PARAMETER);
-    assertHighlight(highlights, source, "value", PrismioSyntaxHighlighter.MUTABLE_VARIABLE);
-    assertHighlight(highlights, source, "MAX_SIZE", PrismioSyntaxHighlighter.CONSTANT);
-    assertHighlight(highlights, source, "move", PrismioSyntaxHighlighter.METHOD_CALL);
-  }
-
   public void testMultilineFunctionBodyIsFoldable() {
     String source = """
         fn main() {
@@ -237,16 +205,5 @@ public class PrismioCodeInsightTest extends BasePlatformTestCase {
       lexer.advance();
     }
     assertTrue("a semicolon should be reported as a bad character", flagged);
-  }
-
-  private static void assertHighlight(
-      List<HighlightInfo> highlights, String source, String text, TextAttributesKey expectedKey) {
-    int startOffset = source.indexOf(text);
-    assertTrue("Missing test token: " + text, startOffset >= 0);
-    int endOffset = startOffset + text.length();
-    assertTrue("Expected " + expectedKey.getExternalName() + " on '" + text + "'",
-        highlights.stream().anyMatch(info
-            -> info.startOffset == startOffset && info.endOffset == endOffset
-                && expectedKey.equals(info.forcedTextAttributesKey)));
   }
 }

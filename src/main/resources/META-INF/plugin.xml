@@ -117,10 +117,7 @@
         <additionalTextAttributes scheme="Default" file="colorSchemes/PrismioDefault.xml"/>
         <additionalTextAttributes scheme="Darcula" file="colorSchemes/PrismioDarcula.xml"/>
 
-        <!-- Annotator for Semantic Highlighting -->
-        <annotator
-                language="Prismio"
-                implementationClass="io.prismio.annotator.PrismioAnnotator"/>
+        <!-- The colour of a name, by what it refers to, is the server's: semantic tokens (io.prismio.lsp.PrismioLspFeatures). -->
 
         <!-- Completion (names, members, types, imports and their edits, `build.ums` blocks and keys) comes from the language
              server (io.prismio.lsp.PrismioLspFeatures). -->
