@@ -48,8 +48,14 @@ public class CreateUmsManifestActionTest extends BasePlatformTestCase {
     String expected = first.replaceFirst("^prismio ", "").trim();
     assertFalse(first, expected.isEmpty());
 
-    PrismioProjectSettings.getInstance(getProject()).getState().compilerPath = compiler;
-    assertEquals(expected, CreateUmsManifestAction.compilerVersion(getProject()));
-    assertEquals(expected, CreateUmsManifestAction.versionOf(Path.of(compiler)));
+    PrismioProjectSettings.State settings = PrismioProjectSettings.getInstance(getProject()).getState();
+    String before = settings.compilerPath;
+    settings.compilerPath = compiler;
+    try {
+      assertEquals(expected, CreateUmsManifestAction.compilerVersion(getProject()));
+      assertEquals(expected, CreateUmsManifestAction.versionOf(Path.of(compiler)));
+    } finally {
+      settings.compilerPath = before;
+    }
   }
 }

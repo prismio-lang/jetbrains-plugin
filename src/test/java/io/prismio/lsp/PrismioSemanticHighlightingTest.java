@@ -5,6 +5,8 @@ import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.editor.impl.DocumentMarkupModel;
 import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.editor.markup.TextAttributes;
+import com.intellij.platform.lsp.api.LspServerManager;
+import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import io.prismio.PrismioFileType;
@@ -45,6 +47,28 @@ public class PrismioSemanticHighlightingTest extends BasePlatformTestCase {
           return 0
       }
       """;
+
+  /**
+   * This class's own project. The light project the other platform tests share keeps the folder it was created in for
+   * the first test only, and the server starts in the project's folder, so a run that reached this test later saw a
+   * server that could not start. A server left running in a shared project also changes what Reformat Code does for
+   * the tests after it.
+   */
+  private static final LightProjectDescriptor OWN_PROJECT = new LightProjectDescriptor();
+
+  @Override
+  protected LightProjectDescriptor getProjectDescriptor() {
+    return OWN_PROJECT;
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      LspServerManager.getInstance(getProject()).stopServers(PrismioLspServerSupportProvider.class);
+    } finally {
+      super.tearDown();
+    }
+  }
 
   /** Every highlighter on exactly this range that carries one of the plugin's colour keys, lowest layer first. */
   private List<RangeHighlighter> keyed(int start, int end) {
