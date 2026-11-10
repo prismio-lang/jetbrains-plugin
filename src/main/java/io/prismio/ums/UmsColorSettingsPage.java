@@ -61,7 +61,7 @@ public final class UmsColorSettingsPage implements ColorSettingsPage {
         project {
             <key>name</key> = "app-<interp>${Channel.BETA}</interp>"
             <key>version</key> = <constant>VERSION</constant>
-            <key>prismio</key> = "0.1.0"
+            <key>prismio</key> = "0.2.0"
             <key>description</key> = "costs <escape>$$</escape>5"
             <key>authors</key> = ["Ada Lovelace"]
         }

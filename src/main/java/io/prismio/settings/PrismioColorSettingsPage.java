@@ -94,6 +94,7 @@ public final class PrismioColorSettingsPage implements ColorSettingsPage {
 
             import <importPath>std.io</importPath>
             import std.string
+            import std.vec
 
             // The FFI contract names are contextual keywords, not reserved words.
             extern fn read_file(path: String borrow) -> String produce(free)
@@ -114,6 +115,10 @@ public final class PrismioColorSettingsPage implements ColorSettingsPage {
                 fn draw(self) -> String
             }
 
+            struct Box<T> {
+                value: T
+            }
+
             impl<T: Drawable> Box<T> where T: Copy {
                 private fn render(self, index: Usize) -> String {
                     return self.value.draw()
@@ -122,9 +127,9 @@ public final class PrismioColorSettingsPage implements ColorSettingsPage {
 
             let <constant>MAX_SIZE</constant> = 1000
 
-            public fn <functionDecl>classify</functionDecl>(<parameter>value</parameter>: Int) -> Bool {
-                let <localVar>doubled</localVar> = value * 2
-                let mut <mutableVar>total</mutableVar> = 0
+            public fn <functionDeclaration>classify</functionDeclaration>(<parameter>value</parameter>: Int) -> Bool {
+                let <localVariable>doubled</localVariable> = value * 2
+                let mut <mutableVariable>total</mutableVariable> = 0
 
                 // `and` and `or` are the logical operators; `..` is a range.
                 for index in 0..doubled {
@@ -133,20 +138,21 @@ public final class PrismioColorSettingsPage implements ColorSettingsPage {
                     }
                 }
 
-                match value {
-                    0 => return false,
-                    _ => return total >= 0
+                match (value) {
+                    0 => { return false }
+                    _ => { return total >= 0 }
                 }
             }
 
             fn main() -> Int {
-                let items: List<Int> = list_new()
+                let mut items: Vec<Int> = [3, 1, 2]
                 let text = "escapes: \\n and \\t"
                 let letter = 'p'
 
                 region arena pin(4096) {
                     let point = Point { x: 1, y: 2.5 }
-                    <functionCall>println</functionCall>(<methodCall>strFromInt</methodCall>(point.x))
+                    <functionCall>println</functionCall>(point.x)
+                    items.<methodCall>push</methodCall>(4)
                 }
 
                 spawn classify(41)

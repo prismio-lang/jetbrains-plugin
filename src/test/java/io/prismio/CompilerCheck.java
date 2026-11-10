@@ -11,16 +11,16 @@ import java.util.concurrent.TimeUnit;
  * colour page's demo) to the compiler. The compiler comes from {@code -Dprismio.compiler}; without it {@link
  * #compiler()} is null and the tests fall back to the checks that need no compiler.
  */
-final class CompilerCheck {
+public final class CompilerCheck {
   private CompilerCheck() {}
 
   /** The compiler the run was pointed at, or null when {@code -Dprismio.compiler} is not set. */
-  static String compiler() {
+  public static String compiler() {
     return System.getProperty("prismio.compiler");
   }
 
   /** The output of {@code prismio check} on {@code source}, or an empty string when it is accepted. */
-  static String check(String source) throws Exception {
+  public static String check(String source) throws Exception {
     Path dir = Files.createTempDirectory("prismio-check");
     try {
       Path file = dir.resolve("snippet.psm");
