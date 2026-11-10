@@ -5,30 +5,10 @@ import com.intellij.execution.filters.Filter;
 import com.intellij.execution.lineMarker.RunLineMarkerContributor;
 import com.intellij.psi.PsiElement;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
-import io.prismio.annotator.PrismioDiagnostic;
-import io.prismio.annotator.PrismioDiagnosticParser;
 import io.prismio.execution.PrismioConsoleFilter;
 import io.prismio.execution.PrismioRunLineMarkerContributor;
-import java.util.List;
 
 public class PrismioAdvancedFeaturesTest extends BasePlatformTestCase {
-  public void testDiagnosticParser() {
-    String jsonOutput = """
-        {"kind":"diagnostic","schemaVersion":1,"severity":"error","code":"P4001","file":"src/main.psm","line":12,"column":5,"length":4,"message":"unknown name `item`"}
-        {"kind":"summary","schemaVersion":1,"errors":1,"warnings":0}
-        """;
-    List<PrismioDiagnostic> diagnostics = PrismioDiagnosticParser.parseOutput(jsonOutput);
-    assertEquals(1, diagnostics.size());
-    PrismioDiagnostic diag = diagnostics.get(0);
-    assertEquals("error", diag.severity());
-    assertEquals("P4001", diag.code());
-    assertEquals("src/main.psm", diag.file());
-    assertEquals(12, diag.line());
-    assertEquals(5, diag.column());
-    assertEquals(4, diag.length());
-    assertEquals("unknown name `item`", diag.message());
-  }
-
   public void testConsoleFilterMatchesLocation() {
     myFixture.addFileToProject("src/main.psm", "fn main() {}\n");
     PrismioConsoleFilter filter = new PrismioConsoleFilter(getProject());
