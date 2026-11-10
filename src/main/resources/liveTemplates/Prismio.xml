@@ -148,8 +148,8 @@
         </context>
     </template>
 
-    <!-- Match expression -->
-    <template name="match" value="match $VALUE$ {&#10;    $PATTERN$ =&gt; $RESULT$,&#10;    _ =&gt; $DEFAULT$&#10;}"
+    <!-- Match: the scrutinee is parenthesised and every arm is a block, with no comma between arms -->
+    <template name="match" value="match ($VALUE$) {&#10;    $PATTERN$ =&gt; { $RESULT$ }&#10;    _ =&gt; { $DEFAULT$ }&#10;}"
               description="Create match expression"
               toReformat="true"
               toShortenFQNames="true">
@@ -163,7 +163,7 @@
     </template>
 
     <!-- Variable declaration -->
-    <template name="let" value="let $NAME$ = $VALUE$;"
+    <template name="let" value="let $NAME$ = $VALUE$"
               description="Create variable"
               toReformat="false"
               toShortenFQNames="true">
@@ -175,7 +175,7 @@
     </template>
 
     <!-- Mutable variable -->
-    <template name="letm" value="let mut $NAME$ = $VALUE$;"
+    <template name="letm" value="let mut $NAME$ = $VALUE$"
               description="Create mutable variable"
               toReformat="false"
               toShortenFQNames="true">
@@ -187,7 +187,7 @@
     </template>
 
     <!-- Println -->
-    <template name="pln" value="println($TEXT$);"
+    <template name="pln" value="println($TEXT$)"
               description="Print line"
               toReformat="false"
               toShortenFQNames="true">
