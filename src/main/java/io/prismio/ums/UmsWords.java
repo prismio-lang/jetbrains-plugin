@@ -12,8 +12,9 @@ import java.util.Set;
  * tables here mirror that file so the editor recognises exactly what the
  * compiler recognises, and colours nothing it would reject.
  *
- * <p>Each entry carries its own description because completion, documentation
- * and the annotator all want the same sentence, and three copies of it drift.
+ * <p>Each entry carries the sentence that describes it, kept with the name it
+ * belongs to. The plugin reads only the names now ({@link UmsAnnotator} colours
+ * what is recognised); the language server completes and documents a manifest.
  */
 public final class UmsWords {
 

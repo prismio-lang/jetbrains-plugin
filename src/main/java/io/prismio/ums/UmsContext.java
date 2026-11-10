@@ -222,7 +222,7 @@ public final class UmsContext {
         token.start, token.start + token.text.length());
   }
 
-  /** The completions valid at an arbitrary offset, used before a name is typed. */
+  /** The blocks that enclose {@code offset}, outermost first. */
   public static List<String> pathAt(PsiFile file, int offset) {
     List<Token> tokens = tokensOf(file);
     int index = 0;

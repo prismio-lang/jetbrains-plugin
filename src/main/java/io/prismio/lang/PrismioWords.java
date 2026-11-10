@@ -3,9 +3,9 @@ package io.prismio.lang;
 import java.util.Set;
 
 /**
- * The word tables the lexer, completion and colour settings all read.
+ * The word tables the lexer reads.
  *
- * <p>One copy, because three copies drift. Each list mirrors a specific place in
+ * <p>One copy, so that a word the compiler adds is added in one place. Each list mirrors a specific place in
  * the compiler and names it, so a reader checking whether this is current knows
  * exactly which file to open.
  */

@@ -20,8 +20,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Service responsible for discovering and validating the Prismio compiler executable
- * and the standard library distribution.
+ * Service responsible for discovering and validating the Prismio compiler executable the project
+ * uses, and for asking a compiler its version.
  */
 @Service(Service.Level.PROJECT)
 public final class PrismioToolchainService {

@@ -10,9 +10,10 @@ import org.jetbrains.annotations.NotNull;
  * A flat parse: every token becomes a leaf under the file node.
  *
  * <p>Prismio's real parser lives in the compiler and produces an AST this plugin
- * has no access to. Everything the IDE offers — highlighting, structure, folding,
- * completion — is derived from the token stream instead, so a tree with shape
- * would be a second, poorer answer to a question already answered. This replaced
+ * has no access to. What the plugin does itself — highlighting, folding, the typing
+ * handlers — is derived from the token stream; what needs meaning (completion,
+ * navigation, hover, structure) is the language server's, which has the compiler's
+ * own parse. A tree with shape would be a second, poorer answer to a question already answered. This replaced
  * a Grammar-Kit grammar that said exactly the same thing in 121 generated lines
  * and a {@code .bnf} that had to be regenerated to change a token name.
  */

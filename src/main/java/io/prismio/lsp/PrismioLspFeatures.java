@@ -89,10 +89,10 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Which of the server's features the editor uses.
  *
- * <p>The platform client turns on everything the server advertises. The plugin's own implementations of
- * the same features are still here until each is deleted, and two answers to one question are worse than
- * one. So a feature is added to {@link #SERVED} in the commit that deletes the Java that used to answer it,
- * and every other one is switched off. The server advertises more than {@code SERVED} lists; that is the
+ * <p>The platform client turns on everything the server advertises, and two answers to one question are
+ * worse than one. So a feature is added to {@link #SERVED} in the commit that deletes the Java that used
+ * to answer it, and every other one is switched off. Of the plugin's own answers only the formatter's
+ * indent is left (below). The server advertises more than {@code SERVED} lists; that is the
  * work still to do, not a limit of the server.
  *
  * <p>The platform enables rename, highlights and server-only formatting by default only for plain text, so each of

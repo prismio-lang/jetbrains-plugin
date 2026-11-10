@@ -27,7 +27,7 @@ public final class PrismioSyntaxHighlighter extends SyntaxHighlighterBase {
   public static final TextAttributesKey BUILTIN_TYPE =
       createTextAttributesKey("PRISMIO_TYPE", DefaultLanguageHighlighterColors.CLASS_NAME);
 
-  /** `List`, `Result`, `Box` — shipped in `std`, so a reference rather than a built-in. */
+  /** `Vec`, `Result`, `Box` — shipped in `std`, so a reference rather than a built-in. */
   public static final TextAttributesKey STDLIB_TYPE = createTextAttributesKey(
       "PRISMIO_STDLIB_TYPE", DefaultLanguageHighlighterColors.CLASS_REFERENCE);
 

@@ -239,9 +239,10 @@
 
         <colorSettingsPage implementation="io.prismio.ums.UmsColorSettingsPage"/>
 
-        <!-- Colours the names the manifest system recognises, and warns about
-             the ones it does not. A manifest has no keywords, so this is the
-             only place that distinction can be drawn. -->
+        <!-- Colours the names the manifest system recognises at that position and leaves the
+             rest as plain identifiers; the compiler's own diagnostics, through the language
+             server, say which are wrong. A manifest has no keywords, so this is the only
+             place that distinction can be drawn. -->
         <annotator
                 language="UMS"
                 implementationClass="io.prismio.ums.UmsAnnotator"/>
