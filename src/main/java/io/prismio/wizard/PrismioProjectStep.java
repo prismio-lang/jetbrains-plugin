@@ -4,7 +4,7 @@ import com.intellij.ide.wizard.AbstractNewProjectWizardStep;
 import com.intellij.ide.wizard.NewProjectWizardBaseData;
 import com.intellij.ide.wizard.NewProjectWizardStep;
 import com.intellij.openapi.application.WriteAction;
-import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -66,7 +66,7 @@ final class PrismioProjectStep extends AbstractNewProjectWizardStep {
   static void open(@NotNull Project project, @Nullable VirtualFile main) {
     if (main != null) {
       DumbService.getInstance(project).runWhenSmart(
-          () -> FileEditorManager.getInstance(project).openFile(main, true));
+          () -> new OpenFileDescriptor(project, main).navigate(true));
     }
   }
 }
