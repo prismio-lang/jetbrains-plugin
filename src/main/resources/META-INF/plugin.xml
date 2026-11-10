@@ -13,7 +13,7 @@
 
         <h3>Writing code</h3>
         <ul>
-            <li>Syntax highlighting, with separate colours for types, functions, fields and variables</li>
+            <li>Syntax highlighting, with names coloured by what the compiler says they are: functions, methods, parameters, locals, constants, fields, enum variants and types</li>
             <li>Completion that knows the type in front of the dot. Type <code>name.</code> and you get the methods of a <code>String</code></li>
             <li>Imports are added for you. Pick <code>println</code> from the list and <code>import std.io</code> appears at the top</li>
             <li>Errors from the compiler as you type, with a quick fix to add a missing import</li>
@@ -23,7 +23,7 @@
 
         <h3>Finding your way</h3>
         <ul>
-            <li>Go to declaration, including from an <code>import</code> to the file it names</li>
+            <li>Go to declaration, into the standard library's source too, and from an <code>import</code> to the module it names</li>
             <li>Find usages and rename</li>
             <li>Structure view and Go to Symbol</li>
             <li>Documentation from your <code>///</code> and <code>/** */</code> comments, rendered in the editor (turned on once, under Settings | Editor | General | Appearance)</li>
@@ -45,7 +45,7 @@
         <h3>build.ums</h3>
         <ul>
             <li>Highlighting, completion and formatting</li>
-            <li>Warnings for names the build system does not know, and errors for values it will reject</li>
+            <li>The build system's own errors as you type, for a name it does not know or a value it will reject</li>
             <li>Structure view of blocks, targets and commands</li>
         </ul>
 
@@ -53,8 +53,9 @@
         <p>
             Install the Prismio toolchain. The plugin looks for <code>prismio</code> on your PATH;
             to use a different compiler, set it in
-            <b>Settings | Languages &amp; Frameworks | Prismio</b>. Completion and error checking
-            follow the version of the compiler you pick.
+            <b>Settings | Languages &amp; Frameworks | Prismio</b>. Errors, completion, navigation and
+            formatting come from that compiler's language server (<code>prismio lsp</code>, in toolchains
+            from 0.2.0), so they follow the version you pick.
         </p>
     ]]></description>
 
@@ -62,9 +63,17 @@
         <h3>0.2.0</h3>
         <ul>
             <li>Errors, completion, hover, parameter and type hints, go to declaration (also into the standard library),
-                find usages, rename, structure view, Go to Symbol and imports come from the compiler's language server</li>
+                find usages, rename, structure view, Go to Symbol and imports come from the compiler's language server
+                (<code>prismio lsp</code>), so they follow the toolchain you pick</li>
+            <li>Names are coloured from the server's semantic tokens</li>
             <li>Reformat Code uses <code>prismio fmt</code>, the same rules as the command line</li>
-            <li><code>...</code> is one token; the lexer's word tables are checked against the compiler's</li>
+            <li>Highlighting for the 0.2.0 language: function markers, <code>Int&lt;N&gt;</code> and the float types,
+                typed pointers, <code>async</code>/<code>await</code>, <code>is</code>/<code>not</code>, <code>codeset</code> and more</li>
+            <li><code>build.ums</code>: <code>const</code>, <code>enum</code> and <code>${}</code> interpolation</li>
+            <li>Fixed: live templates wrote <code>;</code> and an unparenthesised <code>match</code>; Rename, Highlight
+                Usages and Reformat Code did nothing in a <code>.psm</code> file; Enter after <code>{</code> indented twice</li>
+            <li>Removed the Mutable Variable colour, which the compiler does not report</li>
+            <li>Requires a 2026.2 IDE and a Prismio 0.2.0 toolchain</li>
         </ul>
         <h3>0.1.0</h3>
         <p>First release.</p>

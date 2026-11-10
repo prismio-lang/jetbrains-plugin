@@ -27,7 +27,8 @@ of the language, so it follows the compiler you pick. It needs a toolchain that 
 
 **Writing code**
 
-- Syntax highlighting, with separate colours for types, functions, fields and variables.
+- Syntax highlighting, with names coloured by what the compiler says they are (functions, methods,
+  parameters, locals, constants, fields, enum variants and types).
 - Completion that knows the type before the dot. After `let name = "Ada"`,
   typing `name.` lists the methods of `String`.
 - Imports added for you. Choose `println` from the list and `import std.io`
@@ -38,7 +39,7 @@ of the language, so it follows the compiler you pick. It needs a toolchain that 
 
 **Finding your way**
 
-- Go to declaration, including from an `import` to the file it names.
+- Go to declaration, into the standard library's source too, and from an `import` to the module it names.
 - Find usages and rename.
 - Structure view and Go to Symbol.
 - Documentation from `///` and `/** */` comments (Ctrl+Q), rendered in the editor. The
@@ -63,7 +64,7 @@ of the language, so it follows the compiler you pick. It needs a toolchain that 
 **build.ums**
 
 - Highlighting, completion and formatting.
-- A warning for a name the build system does not know, and an error for a
+- The build system's own errors as you type, for a name it does not know or a
   value it will reject.
 - Structure view of blocks, targets and commands.
 
@@ -80,12 +81,16 @@ Completion, error checking, hover, navigation and formatting come from the
 compiler you pick, through its language server, so a newer or older compiler
 shows its own functions and methods and its own errors. **Settings | Languages &
 Frameworks | Prismio | Use the Prismio language server** turns the server off;
-the plugin then keeps highlighting, folding, typing and running.
+the plugin then keeps the lexer's highlighting, folding, typing and running.
 
 ## Compatibility
 
-Any JetBrains IDE from 2026.2 on. The plugin depends only on the shared
-platform, plus the spellchecker and debugger modules every IDE ships.
+Any JetBrains IDE from 2026.2 on, with a Prismio toolchain from 0.2.0 (one that ships
+`prismio-lsp`). The plugin depends only on the shared platform, plus the spellchecker and
+debugger modules every IDE ships; the language server needs the platform's LSP client,
+which every 2026.2 IDE has. It is used by hand in IntelliJ IDEA and CLion, and passes
+JetBrains' plugin verifier against PyCharm, RustRover, WebStorm and Rider 2026.2 and
+IntelliJ IDEA 2026.3.
 
 ## Building from source
 
