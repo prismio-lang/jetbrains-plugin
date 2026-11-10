@@ -5,7 +5,7 @@ import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.editor.impl.DocumentMarkupModel;
 import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.editor.markup.TextAttributes;
-import com.intellij.platform.lsp.api.LspServerManager;
+import com.intellij.platform.lsp.api.LspClientManager;
 import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
@@ -64,7 +64,7 @@ public class PrismioSemanticHighlightingTest extends BasePlatformTestCase {
   @Override
   protected void tearDown() throws Exception {
     try {
-      LspServerManager.getInstance(getProject()).stopServers(PrismioLspServerSupportProvider.class);
+      LspClientManager.getInstance(getProject()).stopClients(PrismioLspIntegrationProvider.class);
     } finally {
       super.tearDown();
     }

@@ -4,7 +4,7 @@ import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.platform.lsp.api.ProjectWideLspServerDescriptor;
+import com.intellij.platform.lsp.api.ProjectWideLspClientDescriptor;
 import com.intellij.platform.lsp.api.customization.LspCustomization;
 import io.prismio.toolchain.PrismioToolchainService;
 import java.nio.file.Path;
@@ -14,9 +14,9 @@ import org.jetbrains.annotations.NotNull;
  * How to run and talk to {@code prismio lsp}: the compiler the project is configured with, started
  * in the project's folder, for {@code .psm} sources and {@code build.ums} manifests.
  */
-final class PrismioLspServerDescriptor extends ProjectWideLspServerDescriptor {
+final class PrismioLspClientDescriptor extends ProjectWideLspClientDescriptor {
 
-  PrismioLspServerDescriptor(@NotNull Project project) {
+  PrismioLspClientDescriptor(@NotNull Project project) {
     super(project, "Prismio");
   }
 
