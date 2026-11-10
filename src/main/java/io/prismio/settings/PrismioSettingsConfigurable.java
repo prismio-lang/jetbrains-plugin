@@ -62,7 +62,7 @@ public final class PrismioSettingsConfigurable implements SearchableConfigurable
       }
     });
 
-    useServerBox = new JBCheckBox("Use the Prismio language server (errors as you type, quick fixes and the features it provides; restart the IDE to apply)");
+    useServerBox = new JBCheckBox("Use the Prismio language server (errors as you type, quick fixes and the features it provides; takes effect when you apply)");
 
     mainPanel = FormBuilder.createFormBuilder()
         .addLabeledComponent("Compiler executable:", compilerPathField)
